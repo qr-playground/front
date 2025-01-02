@@ -1,8 +1,17 @@
-# React + Vite
+# QR-World Front
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+### 기술 환경 세팅
+- **Language**: 
+- **Framework**: React + Vite
+- **Build**: 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 프로젝트 환경 세팅 
+- **패키지 구조**: 
+
+### 프로젝트 목적 
+- **시작**: 2025.01.02
+- **목적**: 동아리에서 선착순으로 스터디원을 모집할 때 노션 댓글에 "저녁 7시부터 댓글 달아주세요."라는 문구를 보고 댓글을 다는 불편함과 선착순이 제대로 동작하지 않았을 것 같다는 의심을 해결하고자 시작하게 됨.
+- **만들고자 하는 것**: QR코드로 입장하여 등록하는 시스템. 단, 선착순에 맞게 순서를 정확하게 반영하는 시스템.
+
