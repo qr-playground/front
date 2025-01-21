@@ -1,35 +1,99 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import QRCode from './components/QRCode/QRCode';
+import Register from './components/Register/Register';
+import Result from './components/Result/Result';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [topText, setTopText] = useState('');
+  const [bottomText, setBottomText] = useState('');
+  const [centerText, setCenterText] = useState('');
+  const [fontSize, setFontSize] = useState(16);
+  const [borderThickness, setBorderThickness] = useState(15);
+  const [data, setData] = useState('');
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank" rel="noreferrer">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/register/:uuid" element={<Register />} />
+        <Route path="/result/:uuid" element={<Result />} />
+        <Route path="/" element={
+          <div className="container">
+            <div className="input-group">
+              <label>
+                Top Text:
+                <input
+                  type="text"
+                  value={topText}
+                  onChange={(e) => setTopText(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="input-group">
+              <label>
+                Bottom Text:
+                <input
+                  type="text"
+                  value={bottomText}
+                  onChange={(e) => setBottomText(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="input-group">
+              <label>
+                Center Text:
+                <input
+                  type="text"
+                  value={centerText}
+                  onChange={(e) => setCenterText(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="input-group">
+              <label>
+                Font Size:
+                <input
+                  type="number"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="input-group">
+              <label>
+                Border Thickness:
+                <input
+                  type="number"
+                  value={borderThickness}
+                  onChange={(e) => setBorderThickness(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="input-group">
+              <label>
+                Data:
+                <input
+                  type="text"
+                  value={data}
+                  placeholder="이동할 링크를 입력하세요"
+                  onChange={(e) => setData(e.target.value)}
+                />
+              </label>
+            </div>
+            <QRCode 
+              topText={topText} 
+              bottomText={bottomText} 
+              centerText={centerText} 
+              fontSize={fontSize} 
+              borderThickness={borderThickness} 
+              data={data}
+            />
+          </div>
+        } />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
