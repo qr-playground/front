@@ -1,0 +1,44 @@
+.home-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .home-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+    background-color: #f8f9fa;
+  }
+  
+  .login-button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .home-sidebar {
+    width: 200px;
+    background-color: #343a40;
+    color: #fff;
+    padding: 1rem;
+  }
+  
+  .home-sidebar nav ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .home-sidebar nav ul li {
+    margin-bottom: 1rem;
+  }
+  
+  .home-sidebar nav ul li a {
+    color: #fff;
+    text-decoration: none;
+  }
+  
+  .home-main {
+    flex: 1;
+    padding: 2rem;
+  }

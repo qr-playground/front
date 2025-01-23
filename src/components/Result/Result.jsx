@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { viewData } from '../../api/api';
 
 const Result = () => {
-  const { id } = useParams();
+  const { isAuthenticated } = useAuth();
   const [result, setResult] = useState(null);
 
   const handleView = async () => {
-    // const data = await viewData(id);
-    const data = "에라이 몰랑"; // 임시로 데이터를 넣어봅니다.
+    if (!isAuthenticated) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    const data = await viewData();
     setResult(data);
   };
 

@@ -20,16 +20,37 @@ export const viewData = async (qrId) => {
   return result;
 };
 
-export const registerUser = async ({ name, userId, qrId }) => {
-  console.log(name);
-  console.log(userId);
-  console.log(qrId);
+export const registerUser = async ({ phone, nickname, userId, password }) => {
   const response = await fetch(`${API_BASE_URL}/api/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ qrId, name, userId }),
+    body: JSON.stringify({ phone, nickname, userId, password }),
+  });
+  const result = await response.json();
+  return result;
+};
+
+export const loginUser = async ({ email, password }) => {
+  const response = await fetch(`${API_BASE_URL}/api/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+  const result = await response.json();
+  return result;
+};
+
+export const verifyPhone = async (phone) => {
+  const response = await fetch(`${API_BASE_URL}/api/verify-phone`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ phone }),
   });
   const result = await response.json();
   return result;

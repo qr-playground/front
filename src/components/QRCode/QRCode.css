@@ -1,0 +1,120 @@
+.qrcode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 800px; /* 전체 컨테이너 너비 조정 */
+    margin: 0 auto;
+    padding: 2rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .qrcode-container h1 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .qrcode-content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .input-section {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+  }
+  
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+  
+  .input-label {
+    margin-bottom: 0.5rem;
+    font-weight: bold; /* 텍스트 볼드 처리 */
+  }
+  
+  .input-group input,
+  .input-group select {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+  }
+  
+  .time-select {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .button-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 50%;
+  }
+  
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 0.5rem; /* 버튼 간격 조정 */
+  }
+  
+  .create-button,
+  .view-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 80%; /* 버튼 너비 조정 */
+  }
+  
+  .create-button {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .create-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .view-button {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .view-button:hover {
+    background-color: #218838;
+  }
+  
+  .qrcode-display {
+    margin-top: 1rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .example-qrcode {
+    max-width: 100%;
+    height: auto;
+    width: 300px; /* 이미지 너비 조정 */
+  }
+
+  .center-text-input {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .input-description {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.25rem;
+  }

@@ -1,99 +1,66 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import QRCode from './components/QRCode/QRCode';
-import Register from './components/Register/Register';
+import RegisterWithUUID from './components/Register/RegisterWithUUID';
+import RegisterWithoutUUID from './components/Register/RegisterWithoutUUID';
 import Result from './components/Result/Result';
+import Login from './components/Login/Login';
+import SignUp from './components/SignUp/SignUp';
+import Home from './components/Home/Home';
+import PrivateRoute from './components/PrivateRoute';
+import NavBar from './components/NavBar/NavBar.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 import './App.css';
+import Layout from './components/Layout';
+import MyPage from './components/MyPage/MyPage'; // 마이페이지 컴포넌트 추가
 
 const App = () => {
-  const [topText, setTopText] = useState('');
-  const [bottomText, setBottomText] = useState('');
-  const [centerText, setCenterText] = useState('');
-  const [fontSize, setFontSize] = useState(16);
-  const [borderThickness, setBorderThickness] = useState(15);
-  const [data, setData] = useState('');
-
   return (
     <Router>
-      <Routes>
-        <Route path="/register/:uuid" element={<Register />} />
-        <Route path="/result/:uuid" element={<Result />} />
-        <Route path="/" element={
-          <div className="container">
-            <div className="input-group">
-              <label>
-                Top Text:
-                <input
-                  type="text"
-                  value={topText}
-                  onChange={(e) => setTopText(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="input-group">
-              <label>
-                Bottom Text:
-                <input
-                  type="text"
-                  value={bottomText}
-                  onChange={(e) => setBottomText(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="input-group">
-              <label>
-                Center Text:
-                <input
-                  type="text"
-                  value={centerText}
-                  onChange={(e) => setCenterText(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="input-group">
-              <label>
-                Font Size:
-                <input
-                  type="number"
-                  value={fontSize}
-                  onChange={(e) => setFontSize(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="input-group">
-              <label>
-                Border Thickness:
-                <input
-                  type="number"
-                  value={borderThickness}
-                  onChange={(e) => setBorderThickness(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="input-group">
-              <label>
-                Data:
-                <input
-                  type="text"
-                  value={data}
-                  placeholder="이동할 링크를 입력하세요"
-                  onChange={(e) => setData(e.target.value)}
-                />
-              </label>
-            </div>
-            <QRCode 
-              topText={topText} 
-              bottomText={bottomText} 
-              centerText={centerText} 
-              fontSize={fontSize} 
-              borderThickness={borderThickness} 
-              data={data}
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route
+              path="register/:uuid"
+              element={
+                <PrivateRoute>
+                  <RegisterWithUUID />
+                </PrivateRoute>
+              }
             />
-          </div>
-        } />
-      </Routes>
+            <Route
+              path="register"
+              element={
+                <PrivateRoute>
+                  <RegisterWithoutUUID />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="result"
+              element={
+                <PrivateRoute>
+                  <Result />
+                </PrivateRoute>
+              }
+            />
+            <Route path="qrcode" element={<QRCode />} /> {/* PrivateRoute 제거 */}
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<SignUp />} />
+            <Route
+              path="mypage"
+              element={
+                <PrivateRoute>
+                  <MyPage />
+                </PrivateRoute>
+              }
+            /> {/* 마이페이지 경로 추가 */}
+          </Route>
+        </Routes>
+      </AuthProvider>
     </Router>
   );
-}
+};
 
 export default App;
