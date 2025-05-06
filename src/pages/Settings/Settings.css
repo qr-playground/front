@@ -1,0 +1,97 @@
+.settings-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.settings-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.settings-title {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 1rem;
+}
+
+.settings-section {
+  margin-bottom: 2rem;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-section-title {
+  color: #3498db;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.settings-info-item {
+  display: flex;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.settings-label {
+  font-weight: 600;
+  color: #555;
+  flex-basis: 100px;
+}
+
+.settings-value {
+  color: #333;
+  flex-grow: 1;
+}
+
+.settings-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  margin-top: 0.75rem;
+  margin-right: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settings-button:hover {
+  background-color: #2980b9;
+}
+
+/* 반응형 처리 */
+@media (max-width: 600px) {
+  .settings-card {
+    padding: 1.5rem;
+  }
+
+  .settings-info-item {
+    flex-direction: column;
+  }
+
+  .settings-label {
+    margin-bottom: 0.25rem;
+  }
+
+  .settings-button {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+.settings-error {
+  color: #e74c3c;
+  padding: 1rem;
+  border-radius: 4px;
+  background-color: #fef2f2;
+  border-left: 4px solid #e74c3c;
+  margin-bottom: 1rem;
+}

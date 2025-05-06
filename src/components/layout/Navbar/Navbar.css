@@ -1,0 +1,243 @@
+.navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.navbar-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.navbar-logo:hover {
+  color: #2980b9;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.navbar-item {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.navbar-item:hover {
+  color: #3498db;
+}
+
+.navbar-item::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #3498db;
+  transition: width 0.3s ease;
+}
+
+.navbar-item:hover::after {
+  width: 100%;
+}
+
+.navbar-user-section {
+  position: relative;
+}
+
+.navbar-user-icon-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: #ecf0f1;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navbar-user-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdown-fade 0.2s ease;
+}
+
+@keyframes dropdown-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.navbar-dropdown-item {
+  padding: 1rem;
+  text-align: left;
+  width: 100%;
+  transition: background-color 0.2s ease;
+}
+
+.navbar-dropdown-user-info {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  font-weight: 500;
+  color: #333;
+}
+
+.navbar-dropdown-settings {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #2980b9;
+  font-weight: 500;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-dropdown-settings:hover {
+  background-color: #eaf2f8;
+}
+
+.navbar-dropdown-logout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #e74c3c;
+  font-weight: 500;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-dropdown-logout:hover {
+  background-color: #fef2f2;
+}
+
+.navbar-login {
+  color: #3498db;
+  font-weight: 600;
+}
+
+.navbar-logout {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-logout:hover {
+  background-color: #e67e22;
+}
+
+.navbar-auth-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.navbar-register {
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-register:hover {
+  background-color: #2980b9;
+}
+
+/* 반응형 처리 */
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar-menu {
+    margin-top: 1rem;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .navbar-user-section {
+    margin-top: 0.5rem;
+  }
+
+  .navbar-dropdown {
+    right: 0;
+    width: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 0 1rem;
+  }
+
+  .navbar-logo {
+    font-size: 1.2rem;
+  }
+
+  .navbar-menu {
+    gap: 0.75rem;
+  }
+
+  .navbar-user-icon {
+    width: 30px;
+    height: 30px;
+  }
+}
