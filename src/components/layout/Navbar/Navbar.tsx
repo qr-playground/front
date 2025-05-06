@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { MdAccountCircle } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import "./Navbar.css";
@@ -48,22 +49,7 @@ const Navbar: React.FC = () => {
             aria-label="사용자 메뉴"
           >
             <div className="navbar-user-icon">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-                  fill="#3498db"
-                />
-                <path
-                  d="M12 14C7.03 14 3 18.03 3 23H21C21 18.03 16.97 14 12 14Z"
-                  fill="#3498db"
-                />
-              </svg>
+              <MdAccountCircle size={32} color="#3498db" />
             </div>
           </button>
 

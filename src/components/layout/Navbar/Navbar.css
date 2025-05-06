@@ -79,8 +79,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   background-color: #ecf0f1;
   border-radius: 50%;
   overflow: hidden;
@@ -237,7 +237,7 @@
   }
 
   .navbar-user-icon {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
   }
 }
