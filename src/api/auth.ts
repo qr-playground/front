@@ -1,4 +1,5 @@
 import api from "./axios";
+import { AuthResponseData, ServerResponse } from "./types";
 
 // 로그인 요청 인터페이스
 interface LoginRequest {
@@ -54,8 +55,7 @@ export const login = async (data: LoginRequest): Promise<AuthResponseData> => {
     );
     const authData = response.data.data;
 
-    // 로그인 성공 시 로컬 스토리지에 저장
-    if (authData && authData.userInfo) {
+    if (authData?.userInfo) {
       localStorage.setItem("user", JSON.stringify(authData.userInfo));
 
       if (authData.tokenInfo) {
@@ -63,13 +63,12 @@ export const login = async (data: LoginRequest): Promise<AuthResponseData> => {
         localStorage.setItem("refreshToken", authData.tokenInfo.refreshToken);
       }
 
-      // 이벤트 발생 (AuthContext에서 감지)
       window.dispatchEvent(new Event("auth-login-success"));
     }
 
     return authData;
   } catch (error) {
-    console.error("로그인 실패");
+    console.error("로그인 실패:", error);
     throw error;
   }
 };
@@ -87,18 +86,12 @@ export const signup = async (
 export const logout = async (): Promise<void> => {
   try {
     await api.post("/auth/logout");
-
-    // 로그아웃 처리
-    localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-
-    // 이벤트 발생 (AuthContext에서 감지)
-    window.dispatchEvent(new Event("auth-logout-success"));
   } catch (error) {
-    // 에러가 발생해도 로컬에서는 로그아웃 처리
+    console.error("로그아웃 실패:", error);
+  } finally {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    window.dispatchEvent(new Event("auth-logout-success"));
   }
 };

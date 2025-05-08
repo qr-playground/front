@@ -1,0 +1,271 @@
+.qr-result-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.qr-result-container.loading,
+.qr-result-container.error {
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #e0e0e0;
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+}
+
+.error-message h2 {
+  color: #b91c1c;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.error-message p {
+  color: #7f1d1d;
+  margin-bottom: 1.5rem;
+}
+
+.error-message button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.error-message button:hover {
+  background-color: #2563eb;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qr-result-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  width: 100%;
+}
+
+.qr-result-header {
+  background: #3b82f6;
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.qr-result-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.qr-result-header p {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.qr-result-content {
+  padding: 2rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .qr-result-content {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+}
+
+.qr-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: white;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  min-width: 300px;
+  max-width: 400px;
+  height: 100%;
+}
+
+.qr-code {
+  width: 100%;
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.qr-code-info {
+  width: 100%;
+  text-align: center;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.qr-code-info h2 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.qr-code-info .description {
+  color: #555;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+/* QR 코드 SVG 요소에 대한 스타일 */
+.qr-code svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.qr-info {
+  flex: 1;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.qr-info h2 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.qr-info .description {
+  color: #555;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.qr-detail {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 1.2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.qr-detail p {
+  margin: 0.7rem 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.qr-detail .label {
+  font-weight: 600;
+  margin-right: 0.5rem;
+  color: #555;
+}
+
+.qr-detail .value {
+  color: #111;
+}
+
+.qr-result-actions {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  border-top: 1px solid #eee;
+}
+
+@media (max-width: 600px) {
+  .qr-result-actions {
+    flex-direction: column;
+  }
+}
+
+.qr-result-actions button {
+  padding: 0.7rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.btn-download {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-download:hover {
+  background-color: #2563eb;
+}
+
+.btn-back {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.btn-back:hover {
+  background-color: #e5e7eb;
+}
+
+.btn-home {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.btn-home:hover {
+  background-color: #e5e7eb;
+}

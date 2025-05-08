@@ -1,43 +1,262 @@
-import { QRCodeSVG } from "qrcode.react";
-import React, { useRef, useState } from "react";
-import { createQRCode, QRCodeData } from "../../api/qrcode";
+import { ko } from "date-fns/locale";
+import QRCodeStyling from "qr-code-styling";
+import React, { useEffect, useRef, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useNavigate } from "react-router-dom";
+import { uploadImage } from "../../api/image";
+import { createQRCode } from "../../api/qrcode";
 import { useAuth } from "../../context/AuthContext";
 import "./QrGenerator.css";
 
-interface QROptions extends QRCodeData {
+interface QROptions {
   value: string;
   title: string;
   description: string;
   bgColor: string;
   fgColor: string;
   size: number;
-  includeMargin: boolean;
   level: "L" | "M" | "Q" | "H";
   logoImage: string | null;
-  logoWidth: number;
-  logoHeight: number;
+  logoSize: number;
+  logoAspectRatio?: number;
+}
+
+const DOT_TYPES = [
+  { value: "square", label: "사각형" },
+  { value: "dots", label: "원형" },
+  { value: "rounded", label: "둥근 사각형" },
+  { value: "classy", label: "Classy" },
+  { value: "classy-rounded", label: "Classy 둥근" },
+  { value: "extra-rounded", label: "더 둥근" },
+] as const;
+
+type DotType = (typeof DOT_TYPES)[number]["value"];
+
+const CARD_PADDING = 40;
+const TITLE_HEIGHT = 60;
+const DESCRIPTION_HEIGHT = 80;
+const CARD_SIZE = 300; // QR 코드 최대 크기(슬라이더 max)
+const CARD_WIDTH = 380; // 카드 전체 고정
+const CARD_HEIGHT = 520; // 카드 전체 고정
+
+// 디바운스 커스텀 훅
+function useDebouncedEffect(
+  effect: () => void,
+  deps: unknown[],
+  delay: number
+) {
+  const callback = useRef(effect);
+  useEffect(() => {
+    callback.current = effect;
+  }, [effect]);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      callback.current();
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [...deps, delay]);
+}
+
+// 5분 단위로 올림하는 함수
+function getNextAvailableTime() {
+  const now = new Date();
+  now.setSeconds(0, 0);
+  const next = new Date(now.getTime() + 60 * 60 * 1000); // 1시간 뒤
+  const min = next.getMinutes();
+  const rounded = Math.ceil(min / 5) * 5;
+  if (rounded === 60) {
+    next.setHours(next.getHours() + 1);
+    next.setMinutes(0);
+  } else {
+    next.setMinutes(rounded);
+  }
+  return next;
 }
 
 const QrGenerator: React.FC = () => {
+  const [step, setStep] = useState(0);
   const [options, setOptions] = useState<QROptions>({
-    value: "https://qrworld.com",
+    value: `https://your-domain.com/guestbook`,
     title: "",
     description: "",
     bgColor: "#ffffff",
     fgColor: "#000000",
-    size: 200,
-    includeMargin: true,
-    level: "M",
+    size: 250,
+    level: "H",
     logoImage: null,
-    logoWidth: 50,
-    logoHeight: 50,
+    logoSize: 75,
+    logoAspectRatio: 1,
   });
-
+  const [entryStartAt, setEntryStartAt] = useState<Date | null>(
+    getNextAvailableTime()
+  );
+  const [entryDuration, setEntryDuration] = useState(10); // 분 단위, 5~60
+  const [useSecret, setUseSecret] = useState(false);
+  const [secretCode, setSecretCode] = useState("");
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  const qrRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isAuthenticated } = useAuth();
+  const qrCodeRef = useRef<QRCodeStyling | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
+  const [dotType, setDotType] = useState<DotType>("square");
+  const cardCanvasRef = useRef<HTMLCanvasElement>(null);
+  const navigate = useNavigate();
+
+  // QR 코드가 카드 중앙에 오도록 위치 계산
+  const qrSize = options.size;
+  const qrX = (CARD_WIDTH - qrSize) / 2;
+  const qrY = CARD_PADDING;
+
+  const getLogoImage = () => options.logoImage || undefined;
+
+  useEffect(() => {
+    const qr = new QRCodeStyling({
+      width: qrSize,
+      height: qrSize,
+      data: options.value,
+      image: getLogoImage(),
+      dotsOptions: {
+        color: options.fgColor,
+        type: dotType,
+      },
+      backgroundOptions: {
+        color: options.bgColor,
+      },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        imageSize: options.logoImage ? options.logoSize / qrSize : 0,
+        margin: 0,
+      },
+      qrOptions: {
+        errorCorrectionLevel: options.level,
+      },
+    });
+    setQrCode(qr);
+    qrCodeRef.current = qr;
+  }, [
+    options.value,
+    options.fgColor,
+    options.bgColor,
+    options.logoImage,
+    options.logoSize,
+    options.level,
+    dotType,
+    qrSize,
+  ]);
+
+  useEffect(() => {
+    if (qrCode && previewRef.current) {
+      const currentPreview = previewRef.current;
+      currentPreview.innerHTML = "";
+      qrCode.append(currentPreview);
+    }
+  }, [qrCode, previewRef]);
+
+  useDebouncedEffect(
+    () => {
+      if (!cardCanvasRef.current) return;
+      const canvas = cardCanvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // 캔버스 초기화
+      ctx.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+      // 그림자 효과
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.08)";
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 6;
+      ctx.fillRect(qrX, qrY, qrSize, qrSize);
+      ctx.restore();
+
+      // QR 코드 업데이트 및 그리기
+      if (qrCodeRef.current) {
+        qrCodeRef.current.update({
+          width: qrSize,
+          height: qrSize,
+        });
+        qrCodeRef.current
+          .getRawData("png")
+          .then((blob: Blob | Buffer | null) => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob as Blob);
+            const img = new window.Image();
+            img.onload = () => {
+              ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+              URL.revokeObjectURL(url);
+
+              // 제목
+              const titleText = options.title.trim()
+                ? options.title
+                : "QR 코드";
+              ctx.fillStyle = "#333";
+              ctx.font = "bold 24px Arial";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillText(
+                titleText,
+                CARD_WIDTH / 2,
+                qrY + qrSize + TITLE_HEIGHT / 2 + 60
+              );
+
+              // 설명
+              const descText = options.description.trim()
+                ? options.description
+                : "QR 코드 설명을 입력하세요.";
+              ctx.fillStyle = "#666";
+              ctx.font = "16px Arial";
+              ctx.textAlign = "center";
+              let y = qrY + qrSize + TITLE_HEIGHT + 60;
+              const maxWidth = CARD_WIDTH - CARD_PADDING * 2;
+              const words = descText.split(" ");
+              let line = "";
+              for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + " ";
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && i > 0) {
+                  ctx.fillText(line, CARD_WIDTH / 2, y);
+                  line = words[i] + " ";
+                  y += 22;
+                } else {
+                  line = testLine;
+                }
+              }
+              ctx.fillText(line, CARD_WIDTH / 2, y);
+            };
+            img.src = url;
+          });
+      }
+    },
+    [
+      qrCode,
+      options.title,
+      options.description,
+      options.fgColor,
+      options.bgColor,
+      options.logoImage,
+      options.logoSize,
+      options.level,
+      dotType,
+      qrSize,
+      CARD_WIDTH,
+      CARD_HEIGHT,
+      qrX,
+      qrY,
+    ],
+    500
+  );
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(options.value);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -55,19 +274,21 @@ const QrGenerator: React.FC = () => {
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setOptions((prev) => ({
-      ...prev,
-      [name]: parseInt(value),
-    }));
-    setSaved(false);
-  };
+    const newValue = parseInt(value);
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setOptions((prev) => ({
-      ...prev,
-      [name]: checked,
-    }));
+    setOptions((prev) => {
+      const newOptions = {
+        ...prev,
+        [name]: newValue,
+      };
+
+      if (name === "size") {
+        const maxLogoSize = Math.floor(newValue * 0.3);
+        newOptions.logoSize = Math.min(prev.logoSize, maxLogoSize);
+      }
+
+      return newOptions;
+    });
     setSaved(false);
   };
 
@@ -75,7 +296,6 @@ const QrGenerator: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 파일 크기 제한 (2MB)
     if (file.size > 2 * 1024 * 1024) {
       setError("이미지 크기는 2MB 이하여야 합니다.");
       return;
@@ -83,18 +303,17 @@ const QrGenerator: React.FC = () => {
 
     const reader = new FileReader();
     reader.onload = () => {
-      setOptions((prev) => ({
-        ...prev,
-        logoImage: reader.result as string,
-      }));
-
-      // 높은 오류 복원 수준 권장
-      if (options.level !== "H" && options.level !== "Q") {
+      const img = new window.Image();
+      img.onload = () => {
+        const aspectRatio = img.width / img.height;
         setOptions((prev) => ({
           ...prev,
-          level: "H",
+          logoImage: reader.result as string,
+          logoSize: Math.min(prev.logoSize, Math.floor(prev.size * 0.3)),
+          logoAspectRatio: aspectRatio,
         }));
-      }
+      };
+      img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
   };
@@ -106,33 +325,61 @@ const QrGenerator: React.FC = () => {
     }));
   };
 
-  const handleSave = async () => {
+  // step 1에서 완료 버튼 클릭 시 동작
+  const handleSubmit = async () => {
     if (!isAuthenticated) {
       setError("QR 코드를 저장하려면 로그인이 필요합니다.");
       return;
     }
-
     if (!options.title.trim()) {
       setError("제목을 입력해주세요.");
       return;
     }
+    if (!entryStartAt) {
+      setError("입장 시작 시간을 입력해주세요.");
+      return;
+    }
+    if (useSecret && !secretCode.trim()) {
+      setError("비밀코드를 입력해주세요.");
+      return;
+    }
+
+    // 종료 시간 계산
+    const entryEndAt = new Date(entryStartAt.getTime() + entryDuration * 60000);
 
     try {
-      // API 호출
-      await createQRCode({
-        value: options.value,
+      let logoImageId = null;
+
+      // 1. 로고 이미지가 있으면 업로드
+      if (options.logoImage) {
+        // base64 -> Blob 변환
+        const blob = await (await fetch(options.logoImage)).blob();
+        const file = new File([blob], "logo.png", { type: blob.type });
+        const data = await uploadImage(file);
+        logoImageId = data.id;
+      }
+
+      // 2. QR 코드 이벤트 생성
+      const response = await createQRCode({
         title: options.title,
         description: options.description,
-        bgColor: options.bgColor,
-        fgColor: options.fgColor,
+        secretCode: useSecret ? secretCode : "",
+        entryStartAt: entryStartAt.toISOString(),
+        entryEndAt: entryEndAt.toISOString(),
+        errorCorrectionLevel: options.level,
+        includeMargin: false,
+        backgroundColor: options.bgColor,
+        pointColor: options.fgColor,
         size: options.size,
-        includeMargin: options.includeMargin,
-        level: options.level,
+        dotType: dotType,
+        logoVisualSize: options.logoSize,
+        logoVisualRatio: options.logoAspectRatio,
+        ...(logoImageId && { logoImageId }),
       });
 
-      setSaved(true);
-      setError("");
-      setTimeout(() => setSaved(false), 3000);
+      // response에서 shortId 추출
+      const shortId = response.data.qrcodeInfo.qrcodeEventInfo.shortId;
+      navigate(`/qr-result/${shortId}`);
     } catch (err) {
       console.error("QR 코드 저장 실패:", err);
       setError("QR 코드 저장에 실패했습니다.");
@@ -140,333 +387,334 @@ const QrGenerator: React.FC = () => {
   };
 
   const downloadQRCode = () => {
-    if (!qrRef.current) return;
-
-    // QR 코드 영역 전체를 캡처하기 위해 qr-code-wrapper 요소를 사용
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) return;
-
-    // 캔버스 크기 설정
-    canvas.width = options.size;
-    canvas.height = options.size;
-
-    // 배경색 설정
-    ctx.fillStyle = options.bgColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // QR 코드 SVG 가져오기
-    const svg = qrRef.current.querySelector("svg");
-    if (!svg) return;
-
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const img = new Image();
-
-    img.onload = () => {
-      // QR 코드 그리기
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // 로고 이미지가 있다면 중앙에 그리기
-      if (options.logoImage) {
-        const logoImg = new Image();
-        logoImg.onload = () => {
-          // 로고 이미지를 중앙에 배치
-          const x = (canvas.width - options.logoWidth) / 2;
-          const y = (canvas.height - options.logoHeight) / 2;
-
-          // 로고 배경을 흰색으로 (선택 사항)
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(x, y, options.logoWidth, options.logoHeight);
-
-          // 로고 이미지 그리기
-          ctx.drawImage(logoImg, x, y, options.logoWidth, options.logoHeight);
-
-          // 이미지 다운로드
-          const pngFile = canvas.toDataURL("image/png");
-          const downloadLink = document.createElement("a");
-
-          const fileName = options.title.trim()
-            ? `${options.title.replace(/\s+/g, "_")}_qrcode.png`
-            : "qrcode.png";
-
-          downloadLink.download = fileName;
-          downloadLink.href = pngFile;
-          downloadLink.click();
-        };
-        logoImg.src = options.logoImage;
-      } else {
-        // 로고 없이 바로 다운로드
-        const pngFile = canvas.toDataURL("image/png");
-        const downloadLink = document.createElement("a");
-
-        const fileName = options.title.trim()
-          ? `${options.title.replace(/\s+/g, "_")}_qrcode.png`
-          : "qrcode.png";
-
-        downloadLink.download = fileName;
-        downloadLink.href = pngFile;
-        downloadLink.click();
-      }
-    };
-
-    img.src =
-      "data:image/svg+xml;base64," +
-      btoa(unescape(encodeURIComponent(svgData)));
+    if (!cardCanvasRef.current) return;
+    const pngFile = cardCanvasRef.current.toDataURL("image/png");
+    const downloadLink = document.createElement("a");
+    const fileName = options.title.trim()
+      ? `${options.title.replace(/\s+/g, "_")}_qrcode.png`
+      : "qrcode.png";
+    downloadLink.download = fileName;
+    downloadLink.href = pngFile;
+    downloadLink.click();
   };
-
-  const optionsList = [
-    { value: "L", label: "낮음 (7%)" },
-    { value: "M", label: "중간 (15%)" },
-    { value: "Q", label: "높음 (25%)" },
-    { value: "H", label: "매우 높음 (30%)" },
-  ];
 
   return (
     <div className="qr-generator-container">
       <h1>QR 코드 생성기</h1>
-
       <div className="qr-content">
         <div className="qr-form">
-          <div className="form-group">
-            <label htmlFor="value">URL 또는 텍스트</label>
-            <input
-              type="text"
-              id="value"
-              name="value"
-              value={options.value}
-              onChange={handleInputChange}
-              placeholder="https://example.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="title">제목</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={options.title}
-              onChange={handleInputChange}
-              placeholder="QR 코드 제목"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="description">설명</label>
-            <textarea
-              id="description"
-              name="description"
-              value={options.description}
-              onChange={handleInputChange}
-              placeholder="QR 코드에 대한 설명"
-              rows={3}
-            ></textarea>
-          </div>
-
-          <div className="form-group">
-            <label>로고 이미지</label>
-            <div className="logo-upload-container">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleLogoUpload}
-                accept="image/*"
-                style={{ display: "none" }}
-              />
-              <button
-                type="button"
-                className="btn-upload"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                이미지 선택
-              </button>
-              {options.logoImage && (
+          {step === 0 ? (
+            <>
+              {/* 기존 디자인 입력 폼 */}
+              <div className="form-group">
+                <label htmlFor="title">제목</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={options.title}
+                  onChange={handleInputChange}
+                  placeholder="QR 코드 제목"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="description">설명</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={options.description}
+                  onChange={handleInputChange}
+                  placeholder="QR 코드에 대한 설명"
+                  rows={3}
+                ></textarea>
+              </div>
+              <div className="form-group">
+                <label>로고 이미지</label>
+                <div className="logo-upload-container">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleLogoUpload}
+                    accept="image/*"
+                    style={{ display: "none" }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-upload"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    이미지 선택
+                  </button>
+                  {options.logoImage && (
+                    <button
+                      type="button"
+                      className="btn-remove-logo"
+                      onClick={removeLogo}
+                    >
+                      이미지 제거
+                    </button>
+                  )}
+                </div>
+                {options.logoImage && (
+                  <div className="logo-size-controls">
+                    <div className="form-group">
+                      <label htmlFor="logoSize">
+                        로고 크기:{" "}
+                        <span className="slider-value">
+                          {options.logoSize}px
+                        </span>
+                      </label>
+                      <input
+                        type="range"
+                        id="logoSize"
+                        name="logoSize"
+                        min="20"
+                        max={Math.floor(options.size * 0.3)}
+                        step="1"
+                        value={options.logoSize}
+                        onChange={handleSliderChange}
+                      />
+                    </div>
+                  </div>
+                )}
+                {options.logoImage && options.level !== "H" && (
+                  <div className="warning-message">
+                    로고를 추가할 때는 오류 복원 수준을 '매우 높음'으로 설정하는
+                    것이 좋습니다.
+                  </div>
+                )}
+              </div>
+              <div className="form-group">
+                <label style={{ marginBottom: 8, fontWeight: 600 }}>
+                  QR 점 모양 선택
+                </label>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  {DOT_TYPES.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setDotType(type.value)}
+                      style={{
+                        padding: "0.5rem 1.1rem",
+                        borderRadius: "20px",
+                        border:
+                          dotType === type.value
+                            ? "2px solid #4a6cf7"
+                            : "1px solid #ccc",
+                        background: dotType === type.value ? "#eaf2ff" : "#fff",
+                        color: dotType === type.value ? "#2056c7" : "#333",
+                        fontWeight: dotType === type.value ? 700 : 400,
+                        fontSize: "1rem",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        outline: "none",
+                      }}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group color-picker">
+                  <label htmlFor="fgColor">QR 색상</label>
+                  <div className="color-input-container">
+                    <input
+                      type="color"
+                      id="fgColor"
+                      name="fgColor"
+                      value={options.fgColor}
+                      onChange={handleInputChange}
+                    />
+                    <span>{options.fgColor}</span>
+                  </div>
+                </div>
+                <div className="form-group color-picker">
+                  <label htmlFor="bgColor">배경 색상</label>
+                  <div className="color-input-container">
+                    <input
+                      type="color"
+                      id="bgColor"
+                      name="bgColor"
+                      value={options.bgColor}
+                      onChange={handleInputChange}
+                    />
+                    <span>{options.bgColor}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="size">
+                  QR 코드 크기:{" "}
+                  <span className="slider-value">{options.size}px</span>
+                </label>
+                <input
+                  type="range"
+                  id="size"
+                  name="size"
+                  min="100"
+                  max="300"
+                  step="10"
+                  value={options.size}
+                  onChange={handleSliderChange}
+                  data-min="100"
+                  data-max="300"
+                />
+              </div>
+              {error && <div className="error-message">{error}</div>}
+              <div className="buttons-container">
                 <button
                   type="button"
-                  className="btn-remove-logo"
-                  onClick={removeLogo}
+                  className="btn-save"
+                  onClick={() => setStep(1)}
                 >
-                  이미지 제거
+                  다음
                 </button>
-              )}
-            </div>
-            {options.logoImage && (
-              <div className="logo-size-controls">
-                <div className="form-group">
-                  <label htmlFor="logoWidth">
-                    로고 너비: {options.logoWidth}px
-                  </label>
-                  <input
-                    type="range"
-                    id="logoWidth"
-                    name="logoWidth"
-                    min="20"
-                    max={options.size / 2}
-                    step="5"
-                    value={options.logoWidth}
-                    onChange={handleSliderChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="logoHeight">
-                    로고 높이: {options.logoHeight}px
-                  </label>
-                  <input
-                    type="range"
-                    id="logoHeight"
-                    name="logoHeight"
-                    min="20"
-                    max={options.size / 2}
-                    step="5"
-                    value={options.logoHeight}
-                    onChange={handleSliderChange}
-                  />
-                </div>
               </div>
-            )}
-            {options.logoImage && options.level !== "H" && (
-              <div className="warning-message">
-                로고를 추가할 때는 오류 복원 수준을 '매우 높음'으로 설정하는
-                것이 좋습니다.
-              </div>
-            )}
-          </div>
-
-          <div className="form-row">
-            <div className="form-group color-picker">
-              <label htmlFor="fgColor">QR 색상</label>
-              <div className="color-input-container">
-                <input
-                  type="color"
-                  id="fgColor"
-                  name="fgColor"
-                  value={options.fgColor}
-                  onChange={handleInputChange}
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label
+                  htmlFor="entryStartAt"
+                  style={{ fontWeight: 600, marginBottom: 8 }}
+                >
+                  입장 시작 날짜 및 시간
+                </label>
+                <DatePicker
+                  selected={entryStartAt}
+                  onChange={(date) => setEntryStartAt(date)}
+                  showTimeSelect
+                  timeFormat="HH:mm"
+                  timeIntervals={5}
+                  dateFormat="yyyy년 MM월 dd일 (eee) HH:mm"
+                  placeholderText="날짜와 시간을 선택하세요"
+                  className="date-picker-input"
+                  required
+                  locale={ko}
+                  minDate={new Date()}
+                  minTime={new Date()}
+                  maxTime={new Date(new Date().setHours(23, 55, 0, 0))}
                 />
-                <span>{options.fgColor}</span>
               </div>
-            </div>
-
-            <div className="form-group color-picker">
-              <label htmlFor="bgColor">배경 색상</label>
-              <div className="color-input-container">
-                <input
-                  type="color"
-                  id="bgColor"
-                  name="bgColor"
-                  value={options.bgColor}
-                  onChange={handleInputChange}
-                />
-                <span>{options.bgColor}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="size">크기: {options.size}px</label>
-            <input
-              type="range"
-              id="size"
-              name="size"
-              min="100"
-              max="400"
-              step="10"
-              value={options.size}
-              onChange={handleSliderChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="level">오류 복원 수준</label>
-            <select
-              id="level"
-              name="level"
-              value={options.level}
-              onChange={handleInputChange}
-            >
-              {optionsList.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group checkbox">
-            <label>
-              <input
-                type="checkbox"
-                name="includeMargin"
-                checked={options.includeMargin}
-                onChange={handleCheckboxChange}
-              />
-              여백 포함
-            </label>
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          <div className="buttons-container">
-            <button
-              type="button"
-              className="btn-download"
-              onClick={downloadQRCode}
-            >
-              PNG 다운로드
-            </button>
-            <button type="button" className="btn-save" onClick={handleSave}>
-              {saved ? "저장됨!" : "저장하기"}
-            </button>
-          </div>
-        </div>
-
-        <div className="qr-preview">
-          <div className="qr-code-wrapper" ref={qrRef}>
-            <QRCodeSVG
-              value={options.value}
-              size={options.size}
-              bgColor={options.bgColor}
-              fgColor={options.fgColor}
-              level={options.level as "L" | "M" | "Q" | "H"}
-              includeMargin={options.includeMargin}
-            />
-            {options.logoImage && (
-              <div
-                className="qr-logo-overlay"
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: `${options.logoWidth}px`,
-                  height: `${options.logoHeight}px`,
-                  backgroundColor: "white",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  zIndex: 10,
-                  borderRadius: "4px",
-                  padding: "2px",
-                }}
-              >
-                <img
-                  src={options.logoImage}
-                  alt="Logo"
+              <div className="form-group">
+                <label
+                  htmlFor="entryDuration"
                   style={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    objectFit: "contain",
+                    fontWeight: 600,
+                    marginBottom: 15,
+                    display: "block",
+                  }}
+                >
+                  입장 가능 시간:{" "}
+                  <span className="slider-value">{entryDuration}분</span>
+                </label>
+                <input
+                  type="range"
+                  id="entryDuration"
+                  name="entryDuration"
+                  min={5}
+                  max={60}
+                  step={5}
+                  value={entryDuration}
+                  onChange={(e) => setEntryDuration(Number(e.target.value))}
+                  data-min="5"
+                  data-max="60"
+                  style={{
+                    width: "100%",
+                    margin: "10px 0",
+                    position: "relative",
                   }}
                 />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "0.95rem",
+                    color: "#888",
+                  }}
+                >
+                  <span>최소: 5분</span>
+                  <span>최대: 60분</span>
+                </div>
               </div>
-            )}
-          </div>
-
-          <div className="qr-info">
-            <h3>{options.title || "QR 코드"}</h3>
-            <p>{options.description || "QR 코드 설명을 입력하세요."}</p>
+              <div className="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={useSecret}
+                    onChange={(e) => setUseSecret(e.target.checked)}
+                  />
+                  입장 시 암호를 입력해야 등록할 수 있다
+                </label>
+              </div>
+              {useSecret && (
+                <div className="form-group">
+                  <label htmlFor="secretCode">암호</label>
+                  <input
+                    type="text"
+                    id="secretCode"
+                    name="secretCode"
+                    value={secretCode}
+                    onChange={(e) => setSecretCode(e.target.value)}
+                    placeholder="암호 입력"
+                  />
+                </div>
+              )}
+              {error && <div className="error-message">{error}</div>}
+              <div className="buttons-container">
+                <button
+                  type="button"
+                  className="btn-download"
+                  onClick={() => setStep(0)}
+                >
+                  이전
+                </button>
+                <button
+                  type="button"
+                  className="btn-save"
+                  onClick={handleSubmit}
+                >
+                  완료
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="qr-preview">
+          <canvas
+            ref={cardCanvasRef}
+            width={CARD_WIDTH}
+            height={CARD_HEIGHT}
+            style={{
+              width: CARD_WIDTH,
+              height: CARD_HEIGHT,
+              borderRadius: 12,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+              background: "#fff",
+            }}
+          />
+          <div
+            style={{
+              width: CARD_WIDTH,
+              textAlign: "center",
+              marginTop: 18,
+              fontWeight: 500,
+              fontFamily: "inherit",
+            }}
+          >
+            <div style={{ fontSize: "0.95rem", color: "#888", marginTop: 8 }}>
+              이 카드가 이미지로 다운로드됩니다.
+              <br />
+              실제 생성되는 QR코드는 이 미리보기와 다를 수 있습니다.
+            </div>
           </div>
         </div>
       </div>

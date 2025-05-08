@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -19,18 +19,20 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // 응답 인터셉터 설정
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    // 에러 처리 로직 (향후 토큰 갱신 등에 사용)
+  (response) => response,
+  async (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      // 토큰 만료 시 로그아웃 처리
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      window.dispatchEvent(new Event("auth-logout-success"));
+    }
     return Promise.reject(error);
   }
 );

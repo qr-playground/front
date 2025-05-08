@@ -47,8 +47,8 @@ input {
 
 input:focus {
   outline: none;
-  border-color: #4a6cf7;
-  box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 input:disabled {
@@ -66,7 +66,7 @@ input:disabled {
 .register-button {
   width: 100%;
   padding: 0.85rem;
-  background-color: #4a6cf7;
+  background-color: #3b82f6;
   color: white;
   border: none;
   border-radius: 4px;
@@ -78,7 +78,7 @@ input:disabled {
 }
 
 .register-button:hover:not(:disabled) {
-  background-color: #3a5bd9;
+  background-color: #2563eb;
 }
 
 .register-button:disabled {
@@ -93,7 +93,7 @@ input:disabled {
 }
 
 .login-link a {
-  color: #4a6cf7;
+  color: #3b82f6;
   font-weight: 500;
   margin-left: 0.25rem;
 }

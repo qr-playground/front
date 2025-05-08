@@ -1,4 +1,5 @@
 import api from "./axios";
+import { ServerResponse, UserProfile } from "./types";
 
 // 사용자 정보 인터페이스
 export interface UserProfile {
@@ -24,7 +25,7 @@ interface SuccessResponse<T> {
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
   try {
-    const response = await api.get<SuccessResponse<UserProfile>>("/user/me");
+    const response = await api.get<ServerResponse<UserProfile>>("/user/me");
     return response.data.data;
   } catch (error) {
     console.error("사용자 프로필 조회 실패:", error);
