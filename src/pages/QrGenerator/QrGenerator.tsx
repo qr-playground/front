@@ -400,7 +400,11 @@ const QrGenerator: React.FC = () => {
 
   return (
     <div className="qr-generator-container">
-      <h1>QR 코드 생성기</h1>
+      
+      <h2>{step === 0 ? "QR 코드 디자인" : "QR 코드 이벤트 설정"}</h2>
+      <div className="step-indicator">
+        <span className="current-step"> step {step + 1} </span> / 2
+      </div>
       <div className="qr-content">
         <div className="qr-form">
           {step === 0 ? (

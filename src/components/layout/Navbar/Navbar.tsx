@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
             aria-label="사용자 메뉴"
           >
             <div className="navbar-user-icon">
-              <MdAccountCircle size={32} color="#3b82f6" />
+              <MdAccountCircle size={32} color="#3498db" />
             </div>
           </button>
 
