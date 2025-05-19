@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getUserProfile, UserProfile } from "../../api/user";
 import { useAuth } from "../../context/AuthContext";
 import "./Settings.css";
 
 const Settings: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +77,12 @@ const Settings: React.FC = () => {
 
         <div className="settings-section">
           <h2 className="settings-section-title">QR 코드 관리</h2>
-          <button className="settings-button">내 QR 코드 목록</button>
+          <button
+            className="settings-button"
+            onClick={() => navigate("/settings/my-qrcodes")}
+          >
+            내 QR 코드 목록
+          </button>
           <button className="settings-button">QR 코드 생성 내역</button>
         </div>
       </div>

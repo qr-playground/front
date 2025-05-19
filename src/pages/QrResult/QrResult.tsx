@@ -146,7 +146,7 @@ const QrResult: React.FC = () => {
         qrData.data.qrcodeInfo;
 
       const qrSize = design.size || 256;
-      const qrValue = `${window.location.origin}/qr/${qrcodeEventInfo.shortId}`;
+      const qrValue = `${window.location.origin}/guestbook/${qrcodeEventInfo.shortId}`;
 
       const errorLevel: ErrorCorrectionLevel = ["L", "M", "Q", "H"].includes(
         design.errorCorrectionLevel
@@ -511,7 +511,7 @@ const QrResult: React.FC = () => {
           {/* ---- QR 코드 & 설명 ---- */}
           <div className="qr-code-container">
             <div ref={qrRef} className="qr-code" />
-            <div className="qr-code-info">
+            <div className="qr-code-info" style={{ textAlign: "center" }}>
               <h2>{qrcodeEventInfo.title}</h2>
               {qrcodeEventInfo.description && (
                 <p className="description">{qrcodeEventInfo.description}</p>

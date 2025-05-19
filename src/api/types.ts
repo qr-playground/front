@@ -62,3 +62,39 @@ export interface QRCodeResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+// Guestbook 관련 인터페이스
+export interface GuestbookRequest {
+  shortId: string;
+  deviceId: string;
+  name: string;
+  phoneNumber?: string; // 선택 사항
+  message?: string; // 방명록 메시지 필드 (선택 사항)
+}
+
+export interface GuestbookResponse {
+  success: boolean;
+  status: number;
+  data: {
+    message: string;
+    guestbookId: string;
+  };
+  timestamp: string;
+}
+
+export interface GuestbookListResponse {
+  success: boolean;
+  status: number;
+  data: {
+    guestbooks: GuestbookItem[];
+  };
+  timestamp: string;
+}
+
+export interface GuestbookItem {
+  id: string;
+  name: string;
+  phoneNumber?: string;
+  message: string;
+  createdAt: string;
+}

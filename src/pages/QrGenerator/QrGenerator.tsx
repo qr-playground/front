@@ -35,8 +35,6 @@ type DotType = (typeof DOT_TYPES)[number]["value"];
 
 const CARD_PADDING = 40;
 const TITLE_HEIGHT = 60;
-const DESCRIPTION_HEIGHT = 80;
-const CARD_SIZE = 300; // QR 코드 최대 크기(슬라이더 max)
 const CARD_WIDTH = 380; // 카드 전체 고정
 const CARD_HEIGHT = 520; // 카드 전체 고정
 
@@ -77,7 +75,7 @@ function getNextAvailableTime() {
 const QrGenerator: React.FC = () => {
   const [step, setStep] = useState(0);
   const [options, setOptions] = useState<QROptions>({
-    value: `https://your-domain.com/guestbook`,
+    value: `${window.location.origin}/guestbook/example-shortid`,
     title: "",
     description: "",
     bgColor: "#ffffff",
@@ -347,6 +345,17 @@ const QrGenerator: React.FC = () => {
     // 종료 시간 계산
     const entryEndAt = new Date(entryStartAt.getTime() + entryDuration * 60000);
 
+    // 시간대 정보를 유지하는 ISO 문자열 형식 생성 (Z 제거)
+    const formatDateToLocalISOString = (date: Date) => {
+      const pad = (num: number) => String(num).padStart(2, "0");
+
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+        date.getDate()
+      )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+        date.getSeconds()
+      )}`;
+    };
+
     try {
       let logoImageId = null;
 
@@ -364,8 +373,8 @@ const QrGenerator: React.FC = () => {
         title: options.title,
         description: options.description,
         secretCode: useSecret ? secretCode : "",
-        entryStartAt: entryStartAt.toISOString(),
-        entryEndAt: entryEndAt.toISOString(),
+        entryStartAt: formatDateToLocalISOString(entryStartAt),
+        entryEndAt: formatDateToLocalISOString(entryEndAt),
         errorCorrectionLevel: options.level,
         includeMargin: false,
         backgroundColor: options.bgColor,
@@ -400,7 +409,6 @@ const QrGenerator: React.FC = () => {
 
   return (
     <div className="qr-generator-container">
-      
       <h2>{step === 0 ? "QR 코드 디자인" : "QR 코드 이벤트 설정"}</h2>
       <div className="step-indicator">
         <span className="current-step"> step {step + 1} </span> / 2

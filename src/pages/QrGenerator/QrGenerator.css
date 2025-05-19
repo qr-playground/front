@@ -157,7 +157,7 @@ input[type="range"] {
 /* 슬라이더 레이블 위치 조정 */
 .form-group label {
   display: block;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .color-picker {
