@@ -8,17 +8,17 @@ export interface ServerResponse<T> {
 
 // 사용자 정보 인터페이스
 export interface UserInfo {
-  id: string; // UUID
+  id: string; // UUID (서버: java.util.UUID)
   phoneNumber: string;
-  role: string;
+  role: string; // 서버: Role (enum -> string)
 }
 
-// 토큰 정보 인터페이스
+// 토큰 정보 인터페이스 (서버 AuthDto.Response.TokenInfo와 일치)
 export interface TokenInfo {
   grantType: string;
   accessToken: string;
   refreshToken: string;
-  accessTokenExpiresIn: number;
+  accessTokenExpiresIn: number; // 서버: Long
 }
 
 // 인증 응답 데이터 인터페이스

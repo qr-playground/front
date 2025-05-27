@@ -1,5 +1,5 @@
 import api from "./axios";
-import { AuthResponseData, ServerResponse } from "./types";
+import { AuthResponseData, ServerResponse, TokenInfo, UserInfo } from "./types";
 
 // 로그인 요청 인터페이스
 interface LoginRequest {
@@ -93,5 +93,24 @@ export const logout = async (): Promise<void> => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     window.dispatchEvent(new Event("auth-logout-success"));
+  }
+};
+
+// 서버 AuthDto.Refresh에 맞게 요청, AuthDto.Response.TokenInfo에 맞게 응답 처리
+export const refreshAccessToken = async (): Promise<string | null> => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) return null;
+  try {
+    const response = await api.post<ServerResponse<{ tokenInfo: TokenInfo }>>(
+      "/auth/refresh",
+      { refreshToken }
+    );
+    const { accessToken, refreshToken: newRefreshToken } =
+      response.data.data.tokenInfo;
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", newRefreshToken);
+    return accessToken;
+  } catch {
+    return null;
   }
 };
