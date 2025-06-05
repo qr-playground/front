@@ -20,6 +20,7 @@ interface QROptions {
   logoImage: string | null;
   logoSize: number;
   logoAspectRatio?: number;
+  maxAttendeeCount: number;
 }
 
 const DOT_TYPES = [
@@ -85,6 +86,7 @@ const QrGenerator: React.FC = () => {
     logoImage: null,
     logoSize: 75,
     logoAspectRatio: 1,
+    maxAttendeeCount: 100,
   });
   const [entryStartAt, setEntryStartAt] = useState<Date | null>(
     getNextAvailableTime()
@@ -92,7 +94,7 @@ const QrGenerator: React.FC = () => {
   const [entryDuration, setEntryDuration] = useState(10); // 분 단위, 5~60
   const [useSecret, setUseSecret] = useState(false);
   const [secretCode, setSecretCode] = useState("");
-  const [saved, setSaved] = useState(false);
+  // const [saved, setSaved] = useState(false); // 미사용 변수 주석 처리
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isAuthenticated } = useAuth();
@@ -250,11 +252,12 @@ const QrGenerator: React.FC = () => {
     500
   );
 
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(options.value);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
-  };
+  // const handleCopyUrl = () => { // 미사용 함수 주석 처리
+  //   if (options.value) {
+  //     navigator.clipboard.writeText(options.value);
+  //     alert("QR 코드 URL이 클립보드에 복사되었습니다!");
+  //   }
+  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -266,7 +269,7 @@ const QrGenerator: React.FC = () => {
       ...prev,
       [name]: value,
     }));
-    setSaved(false);
+    // setSaved(false);
     setError("");
   };
 
@@ -287,7 +290,7 @@ const QrGenerator: React.FC = () => {
 
       return newOptions;
     });
-    setSaved(false);
+    // setSaved(false);
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -383,6 +386,7 @@ const QrGenerator: React.FC = () => {
         dotType: dotType,
         logoVisualSize: options.logoSize,
         logoVisualRatio: options.logoAspectRatio,
+        maxAttendeeCount: options.maxAttendeeCount,
         ...(logoImageId && { logoImageId }),
       });
 
@@ -395,17 +399,17 @@ const QrGenerator: React.FC = () => {
     }
   };
 
-  const downloadQRCode = () => {
-    if (!cardCanvasRef.current) return;
-    const pngFile = cardCanvasRef.current.toDataURL("image/png");
-    const downloadLink = document.createElement("a");
-    const fileName = options.title.trim()
-      ? `${options.title.replace(/\s+/g, "_")}_qrcode.png`
-      : "qrcode.png";
-    downloadLink.download = fileName;
-    downloadLink.href = pngFile;
-    downloadLink.click();
-  };
+  // const downloadQRCode = () => { // 미사용 함수 주석 처리
+  //   if (cardCanvasRef.current) {
+  //     const dataUrl = cardCanvasRef.current.toDataURL("image/png");
+  //     const link = document.createElement("a");
+  //     link.download = `${options.title || "qrcode"}.png`;
+  //     link.href = dataUrl;
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //   }
+  // };
 
   return (
     <div className="qr-generator-container">
@@ -655,6 +659,45 @@ const QrGenerator: React.FC = () => {
                 >
                   <span>최소: 5분</span>
                   <span>최대: 60분</span>
+                </div>
+              </div>
+              <div className="form-group">
+                <label
+                  htmlFor="maxAttendeeCount"
+                  style={{ fontWeight: 600, marginBottom: 8 }}
+                >
+                  최대 입장 인원 (1~1000명)
+                </label>
+                <input
+                  type="number"
+                  id="maxAttendeeCount"
+                  name="maxAttendeeCount"
+                  value={options.maxAttendeeCount}
+                  onChange={(e) => {
+                    let count = parseInt(e.target.value);
+                    if (isNaN(count) || count < 1) count = 1;
+                    if (count > 1000) count = 1000;
+                    setOptions((prev) => ({
+                      ...prev,
+                      maxAttendeeCount: count,
+                    }));
+                  }}
+                  min="1"
+                  max="1000"
+                  placeholder="예: 100"
+                  className="number-input"
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    boxSizing: "border-box",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                  }}
+                />
+                <div
+                  style={{ fontSize: "0.85rem", color: "#888", marginTop: 4 }}
+                >
+                  이 QR코드를 통해 입장할 수 있는 최대 인원 수를 설정합니다.
                 </div>
               </div>
               <div className="form-group checkbox">

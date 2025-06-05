@@ -1,5 +1,5 @@
 import api from "./axios";
-import { AuthResponseData, ServerResponse, TokenInfo, UserInfo } from "./types";
+import { AuthResponseData, ServerResponse, TokenInfo } from "./types";
 
 // 로그인 요청 인터페이스
 interface LoginRequest {
@@ -13,39 +13,10 @@ interface SignupRequest {
   password: string;
 }
 
-// 사용자 정보 인터페이스
-interface UserInfo {
-  id: string; // UUID
-  phoneNumber: string;
-  role: string;
-}
-
-// 토큰 정보 인터페이스
-interface TokenInfo {
-  grantType: string;
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiresIn: number;
-}
-
-// 응답 데이터 인터페이스
-interface AuthResponseData {
-  userInfo: UserInfo;
-  tokenInfo: TokenInfo;
-}
-
-// 서버 응답 인터페이스
-interface ServerResponse<T> {
-  data: T;
-  status: number;
-  success: boolean;
-  timestamp: string;
-}
-
-// 전체 응답 인터페이스
-interface AuthResponse {
-  data: ServerResponse<AuthResponseData>;
-}
+// 전체 응답 인터페이스 -> 이 인터페이스는 사용되지 않으므로 삭제합니다.
+// interface AuthResponse {
+// data: ServerResponse<AuthResponseData>;
+// }
 
 export const login = async (data: LoginRequest): Promise<AuthResponseData> => {
   try {

@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createGuestbook } from "../../api/guestbook";
-import { getQRCodeEvent } from "../../api/qrcode";
+import { getQRCodeEvent, ServerQrcodeResponse } from "../../api/qrcode";
 import "./Guestbook.css";
 
 // QR 코드 이벤트 정보 타입 정의
-interface QrEventInfo {
-  id: string;
-  shortId: string;
-  title: string;
-  description: string;
-  secretCode: string;
-  entryStartAt: string;
-  entryEndAt: string;
-}
+// interface QrEventInfo {
+//   id: string;
+//   shortId: string;
+//   title: string;
+//   description: string;
+//   secretCode: string;
+//   entryStartAt: string;
+//   entryEndAt: string;
+// }
 
 // deviceId 관리 함수들
 const DEVICE_ID_KEY = "qr_world_device_id";
@@ -43,7 +43,9 @@ const Guestbook: React.FC = () => {
     type: "success" | "error";
     message: string;
   } | null>(null);
-  const [eventData, setEventData] = useState<QrEventInfo | null>(null);
+  const [eventData, setEventData] = useState<
+    ServerQrcodeResponse["data"]["qrcodeInfo"] | null
+  >(null);
   const [guestName, setGuestName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [secretCode, setSecretCode] = useState("");
@@ -87,7 +89,7 @@ const Guestbook: React.FC = () => {
       try {
         setLoading(true);
         const response = await getQRCodeEvent(shortId);
-        setEventData(response.data.qrcodeInfo.qrcodeEventInfo);
+        setEventData(response.data.qrcodeInfo);
 
         // 비밀 코드가 필요한지 확인
         setNeedsCode(!!response.data.qrcodeInfo.qrcodeEventInfo.secretCode);
@@ -136,7 +138,7 @@ const Guestbook: React.FC = () => {
         return;
       }
 
-      if (secretCode !== eventData.secretCode) {
+      if (secretCode !== eventData.qrcodeEventInfo.secretCode) {
         setStatusMessage({
           type: "error",
           message: "비밀 코드가 올바르지 않습니다.",
@@ -202,9 +204,53 @@ const Guestbook: React.FC = () => {
   return (
     <div className="guestbook-container">
       <div className="guestbook-header">
-        <h1>{eventData?.title || "방명록"}</h1>
-        {eventData?.description && (
-          <p className="event-description">{eventData.description}</p>
+        <h1>{eventData?.qrcodeEventInfo.title || "방명록"}</h1>
+        {eventData?.qrcodeEventInfo.description && (
+          <p className="event-description">
+            {eventData.qrcodeEventInfo.description}
+          </p>
+        )}
+        {eventData && (
+          <div className="event-details">
+            <div className="detail-item">
+              <span className="detail-label">입장 시작 시간:</span>
+              <span className="detail-value">
+                {new Intl.DateTimeFormat("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(new Date(eventData.qrcodeEventInfo.entryStartAt))}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">입장 종료 시간:</span>
+              <span className="detail-value">
+                {new Intl.DateTimeFormat("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(new Date(eventData.qrcodeEventInfo.entryEndAt))}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">최대 입장 가능 인원:</span>
+              <span className="detail-value">
+                {eventData.qrcodeBenefitInfo.maxAttendeeCount}명
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">현재 등록 인원:</span>
+              <span className="detail-value">
+                {eventData.qrcodeBenefitInfo.maxAttendeeCount -
+                  eventData.qrcodeBenefitInfo.availableAttendeeCount}
+                명
+              </span>
+            </div>
+          </div>
         )}
       </div>
 

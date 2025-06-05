@@ -50,6 +50,7 @@ export interface QrcodeEventData {
   logoVisualSize?: number;
   logoVisualRatio?: number;
   logoImageId?: string;
+  maxAttendeeCount: number;
 }
 
 // QR 코드 응답 인터페이스

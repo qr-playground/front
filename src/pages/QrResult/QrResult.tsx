@@ -32,6 +32,12 @@ interface QrcodeResponse {
         logoVisualRatio: number | null;
         logoImageId: string | null;
       };
+      qrcodeBenefitInfo: {
+        id: string;
+        maxAttendeeCount: number;
+        availableAttendeeCount: number;
+        isAttendeeCountLimited: boolean;
+      };
     };
   };
   timestamp: string;
@@ -98,8 +104,8 @@ const QrResult: React.FC = () => {
           return;
         }
 
-        const { url } = await getImage(logoImageId);
-        if (!url) {
+        const imageUrl = await getImage(logoImageId);
+        if (!imageUrl) {
           completeLoading(null);
           return;
         }
@@ -116,11 +122,11 @@ const QrResult: React.FC = () => {
           completeLoading(u);
         };
 
-        preload.onload = () => finish(url);
+        preload.onload = () => finish(imageUrl);
         preload.onerror = () => finish(null);
 
         const tid = setTimeout(() => finish(null), 3000);
-        preload.src = url;
+        preload.src = imageUrl;
       } catch {
         setError("QR 코드 정보를 불러오는데 실패했습니다.");
         setIsLoading(false);
@@ -248,9 +254,12 @@ const QrResult: React.FC = () => {
       const padding = 40;
       const borderRadius = 12;
       const topHeaderHeight = 80; // 상단 헤더 영역
-      const infoHeight = 120; // 설명 영역 높이
+      const infoHeight = 180; // 설명 영역 높이 (유지 또는 필요시 약간 증가)
       const dividerHeight = 2; // 구분선 높이
       const dividerMargin = 20; // 구분선 위아래 여백
+      const lineSpacing = 22; // 기본 줄 간격 (단일 라인 텍스트용)
+      const itemSpacing = 2; // 항목 간 추가 간격
+      const descriptionLineHeight = 24; // wrapText에서 사용하는 줄 높이
 
       // 결과 Canvas 크기 설정 (더 크게 설정)
       resultCanvas.width = qrWidth + padding * 2;
@@ -324,35 +333,90 @@ const QrResult: React.FC = () => {
         dividerHeight
       );
 
-      // 설명 텍스트
+      // 정보 텍스트 영역 시작 Y 위치
+      let currentTextY = dividerY + dividerMargin + 20;
+      const eventInfo = qrData?.data.qrcodeInfo.qrcodeEventInfo;
+      const benefitInfo = qrData?.data.qrcodeInfo.qrcodeBenefitInfo;
+      const maxWidth = resultCanvas.width - padding * 2 - 40; // 중앙 정렬 및 줄바꿈을 위한 최대 너비
+
+      // 1. 설명 텍스트
       const description = qrInfo.querySelector("p")?.textContent || "";
-      const shortId = qrData?.data.qrcodeInfo.qrcodeEventInfo.shortId || "";
-
-      // 설명 텍스트 (더 멋진 스타일로)
-      ctx.fillStyle = "#333333";
-      ctx.font = "16px Arial, sans-serif";
-      ctx.textAlign = "center";
-
-      // 줄바꿈 처리를 위한 최대 너비 설정
-      const maxWidth = resultCanvas.width - padding * 2 - 40;
-
       if (description) {
+        ctx.fillStyle = "#333333";
+        ctx.font = "16px Arial, sans-serif";
+        ctx.textAlign = "center";
+        // wrapText를 호출하고, 설명이 차지하는 예상 높이를 더해 currentTextY 업데이트
+        // wrapText 내부에서 여러 줄을 그릴 수 있으므로, 실제 그려진 높이를 알면 더 정확합니다.
+        // 여기서는 임의로 2줄을 예상하고, 추가로 itemSpacing을 더합니다.
+        const oldY = currentTextY;
         wrapText(
           ctx,
           description,
           resultCanvas.width / 2,
-          dividerY + dividerMargin + 20,
+          currentTextY,
           maxWidth,
-          24
+          descriptionLineHeight
         );
+        // wrapText가 그린 후의 Y위치를 추정 (ctx.measureText 등을 사용하면 더 정확해짐)
+        // 간단하게는, 그려진 줄 수 * 줄간격을 더해야함. 여기서는 평균 2줄로 가정.
+        // 실제로는 description의 길이에 따라 달라짐.
+        const TBD_linesDrawnByWrapText = description.length > 30 ? 2 : 1; // 매우 간략한 추정
+        currentTextY =
+          oldY + TBD_linesDrawnByWrapText * descriptionLineHeight + itemSpacing;
+      } else {
+        // 설명이 없으면 다음 항목과의 간격을 위해 itemSpacing만큼만 Y를 내리지 않도록 조정
+        // (또는, 첫 항목이므로 currentTextY를 그대로 둠)
+      }
+
+      // 2. 최대 참여 인원
+      if (
+        benefitInfo?.maxAttendeeCount !== null &&
+        benefitInfo?.maxAttendeeCount !== undefined
+      ) {
+        ctx.fillStyle = "#555555";
+        ctx.font = "15px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          `최대 인원: ${benefitInfo.maxAttendeeCount}명`,
+          resultCanvas.width / 2,
+          currentTextY
+        );
+        currentTextY += lineSpacing + itemSpacing;
+      }
+
+      // 3. 시작 시간
+      if (eventInfo?.entryStartAt) {
+        ctx.fillStyle = "#555555";
+        ctx.font = "15px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          `시작: ${new Date(eventInfo.entryStartAt).toLocaleString()}`,
+          resultCanvas.width / 2,
+          currentTextY
+        );
+        currentTextY += lineSpacing + itemSpacing;
+      }
+
+      // 4. 종료 시간 (마지막 항목이므로 itemSpacing은 더하지 않음, 필요시 lineSpacing만)
+      if (eventInfo?.entryEndAt) {
+        ctx.fillStyle = "#555555";
+        ctx.font = "15px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          `종료: ${new Date(eventInfo.entryEndAt).toLocaleString()}`,
+          resultCanvas.width / 2,
+          currentTextY
+        );
+        // currentTextY += lineSpacing; // 다음 항목이 없으므로 Y 업데이트 불필요
       }
 
       // 바닥글 (코드 정보)
+      const shortIdText = eventInfo?.shortId || "";
       ctx.fillStyle = "#6c757d";
       ctx.font = "13px Arial, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(
-        `입장 코드: ${shortId}`,
+        `입장 코드: ${shortIdText}`,
         resultCanvas.width / 2,
         resultCanvas.height - padding / 2 - 15
       );
@@ -360,8 +424,8 @@ const QrResult: React.FC = () => {
       // 다운로드 링크 생성
       const dataUrl = resultCanvas.toDataURL("image/png");
       const link = document.createElement("a");
-      const { shortId: fileId } = qrData?.data.qrcodeInfo.qrcodeEventInfo || {};
-      link.download = `qr-${fileId || "code"}.png`;
+      const fileId = eventInfo?.shortId || "code";
+      link.download = `qr-${fileId}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {

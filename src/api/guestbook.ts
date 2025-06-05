@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import api from "./axios";
 import { GuestbookRequest } from "./types";
 
@@ -12,11 +13,22 @@ export const createGuestbook = async (request: GuestbookRequest) => {
     const { shortId, ...requestBody } = request;
 
     // 실제 API 호출
-    const response = await api.post(`/qrcode/${shortId}/guestbook/`, requestBody);
+    const response = await api.post(
+      `/qrcode/${shortId}/guestbook/`,
+      requestBody
+    );
 
     return response.data;
   } catch (error) {
     console.error("방명록 작성 실패:", error);
+    if ((error as AxiosError).isAxiosError && (error as AxiosError).response) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 409) {
+        throw new Error(
+          "이벤트 접근 가능 시간이 아니거나, 등록 가능 인원이 모두 찼습니다."
+        );
+      }
+    }
     throw error;
   }
 };
@@ -45,6 +57,9 @@ export const getGuestbooksPaginated = async (
     return response.data;
   } catch (error) {
     console.error("방명록 목록 조회 실패:", error);
+    if ((error as AxiosError).isAxiosError && (error as AxiosError).response) {
+      // 필요한 경우 특정 상태 코드에 따른 처리 추가
+    }
     throw error;
   }
 };

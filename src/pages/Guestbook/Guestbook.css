@@ -306,3 +306,40 @@
     font-size: 1rem;
   }
 }
+
+/* 추가된 event-details 스타일 */
+.event-details {
+  background-color: #ffffff; /* 흰색 배경 */
+  padding: 1.5rem; /* 내부 여백 조정 */
+  border-radius: 12px; /* form-container와 통일 */
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* form-container와 유사한 그림자 */
+  /* border: 1px solid #e5e5e5; 제거 또는 매우 연하게 변경 */
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0; /* 상하 여백 조정 */
+  border-bottom: 1px solid #f0f0f0; /* 더 연한 구분선 */
+  font-size: 1rem; /* 폰트 크기 증가 (0.95rem -> 1rem) */
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 500; /* 폰트 두께 조정 (600 -> 500) */
+  color: #4a5568; /* 레이블 색상 변경 (약간 어두운 회색) */
+  margin-right: 1rem; /* 레이블-값 사이 간격 조정 */
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: #1a202c; /* 값 색상 변경 (더 진한 회색/검정) */
+  text-align: right;
+  flex-grow: 1;
+  font-weight: 500; /* 값 폰트 두께도 약간 추가 */
+}

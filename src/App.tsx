@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import About from "./pages/About/About";
 import Guestbook from "./pages/Guestbook/Guestbook";
+import GuestbookResult from "./pages/Guestbook/GuestbookResult";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import QrGenerator from "./pages/QrGenerator";
@@ -52,6 +53,10 @@ function App() {
             />
             <Route path="/about" element={<About />} />
             <Route path="/guestbook/:shortId" element={<Guestbook />} />
+            <Route
+              path="/guestbook/:shortId/result"
+              element={<GuestbookResult />}
+            />
           </Routes>
         </Layout>
       </BrowserRouter>

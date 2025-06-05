@@ -1,7 +1,10 @@
 import axios from "axios";
 import { refreshAccessToken } from "./auth";
 
-const API_BASE_URL = "http://localhost:8080/api";
+// Vite 환경 변수에서 API 기본 URL 가져오기
+// .env 파일 (또는 .env.production 등)에 VITE_API_BASE_URL=실제API주소 형식으로 정의 필요
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api"; // 로컬 개발 시 fallback
 
 // axios 인스턴스 생성
 const api = axios.create({

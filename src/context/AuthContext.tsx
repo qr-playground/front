@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { login as loginApi, logout as logoutApi } from "../api/auth";
-import { UserInfo } from "../api/types";
+import { AuthResponseData, UserInfo } from "../api/types";
 
 interface AuthContextType {
   user: UserInfo | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (phoneNumber: string, password: string) => Promise<void>;
+  login: (phoneNumber: string, password: string) => Promise<AuthResponseData>;
   logout: () => Promise<void>;
   refreshAuthState: () => void;
 }
@@ -15,7 +15,9 @@ const initialContext: AuthContextType = {
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => {},
+  login: async () => {
+    return Promise.resolve({} as AuthResponseData);
+  },
   logout: async () => {},
   refreshAuthState: () => {},
 };
@@ -69,7 +71,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = async (phoneNumber: string, password: string) => {
+  const login = async (
+    phoneNumber: string,
+    password: string
+  ): Promise<AuthResponseData> => {
     try {
       setIsLoading(true);
       const authData = await loginApi({ phoneNumber, password });

@@ -1,7 +1,7 @@
 import QRCodeStyling from "qr-code-styling";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getUserQrCodes } from "../../api/qrcode";
+import { getQRCodeEvent, getUserQrCodes } from "../../api/qrcode";
 import { useAuth } from "../../context/AuthContext";
 import "./MyQrCodes.css";
 
@@ -16,12 +16,16 @@ interface QrCodeItem {
   eventInfo: {
     entryStartAt: string;
     entryEndAt: string;
-    participantsCount: number;
   };
   design: {
     backgroundColor: string;
     pointColor: string;
     errorCorrectionLevel: string;
+  };
+  benefitInfo: {
+    maxAttendeeCount: number;
+    availableAttendeeCount: number;
+    isAttendeeCountLimited: boolean;
   };
 }
 
@@ -32,16 +36,17 @@ interface QrcodeResponse {
   data: {
     qrcodeInfo: {
       qrcodeEventInfo: {
-        id: string;
+        id: string; // UUID지만 문자열로 처리
         shortId: string;
         title: string;
         description: string;
         secretCode: string;
-        entryStartAt: string;
-        entryEndAt: string;
+        entryStartAt: string; // LocalDateTime이지만 문자열로 처리
+        entryEndAt: string; // LocalDateTime이지만 문자열로 처리
+        isEntryEnded: boolean;
       };
       qrcodeDesignInfo: {
-        id: string;
+        id: string; // UUID지만 문자열로 처리
         errorCorrectionLevel: string;
         includeMargin: boolean;
         backgroundColor: string;
@@ -50,7 +55,13 @@ interface QrcodeResponse {
         dotType: string;
         logoVisualSize: number | null;
         logoVisualRatio: number | null;
-        logoImageId: string | null;
+        logoImageId: string | null; // UUID지만 문자열로 처리
+      };
+      qrcodeBenefitInfo: {
+        id: string; // UUID지만 문자열로 처리
+        maxAttendeeCount: number;
+        availableAttendeeCount: number;
+        isAttendeeCountLimited: boolean;
       };
     };
   };
@@ -119,101 +130,11 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({
         console.log("QR 코드 데이터 가져오기 시작", shortId);
         setLoading(true);
 
-        // 실제 API 호출 코드 (서버 연동 시 주석 해제)
-        // const response = await getQRCodeEvent(shortId);
-        // setQrData(response);
-        // console.log("QR 코드 데이터 가져오기 성공", response);
+        // 실제 API 호출로 변경
+        const response = await getQRCodeEvent(shortId);
+        setQrData(response); // API 응답을 직접 상태에 설정
+        console.log("QR 코드 데이터 가져오기 성공", response);
 
-        // Mock 데이터 생성
-        await new Promise((resolve) => setTimeout(resolve, 800)); // API 호출 지연 시뮬레이션
-
-        // QR 코드 디자인 정보에 사용할 색상 세트
-        const designSets = [
-          {
-            backgroundColor: "#FFFFFF",
-            pointColor: "#000000",
-            dotType: "square",
-            errorCorrectionLevel: "H",
-          },
-          {
-            backgroundColor: "#FFFFFF",
-            pointColor: "#3B82F6",
-            dotType: "rounded",
-            errorCorrectionLevel: "H",
-          },
-          {
-            backgroundColor: "#F0FDFA",
-            pointColor: "#10B981",
-            dotType: "dots",
-            errorCorrectionLevel: "Q",
-          },
-          {
-            backgroundColor: "#F5F5F5",
-            pointColor: "#6366F1",
-            dotType: "classy-rounded",
-            errorCorrectionLevel: "M",
-          },
-        ];
-
-        // shortId를 기반으로 일관된 디자인 선택 (같은 shortId는 항상 같은 디자인 반환)
-        const designIndex = shortId.charCodeAt(0) % designSets.length;
-        const design = designSets[designIndex];
-
-        // 날짜 생성 (현재 기준 ±10일 내)
-        const now = new Date();
-        const offset = (shortId.charCodeAt(1) % 20) - 10; // -10 ~ +10일 범위
-
-        const startDate = new Date(now);
-        startDate.setDate(now.getDate() + offset);
-
-        const endDate = new Date(startDate);
-        endDate.setHours(endDate.getHours() + 24); // 24시간 유효
-
-        // 시간대 정보를 유지하는 ISO 문자열 형식 생성 (Z 제거)
-        const formatDateToLocalISOString = (date: Date) => {
-          const pad = (num: number) => String(num).padStart(2, "0");
-
-          return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-            date.getDate()
-          )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-            date.getSeconds()
-          )}`;
-        };
-
-        // Mock 응답 생성
-        const mockResponse: QrcodeResponse = {
-          success: true,
-          status: 200,
-          data: {
-            qrcodeInfo: {
-              qrcodeEventInfo: {
-                id: `id-${shortId}`,
-                shortId: shortId,
-                title: `QR 이벤트 ${shortId}`,
-                description: `이 QR 코드는 ${shortId} 이벤트를 위해 생성되었습니다.`,
-                secretCode: "",
-                entryStartAt: formatDateToLocalISOString(startDate),
-                entryEndAt: formatDateToLocalISOString(endDate),
-              },
-              qrcodeDesignInfo: {
-                id: `design-${shortId}`,
-                errorCorrectionLevel: design.errorCorrectionLevel,
-                includeMargin: true,
-                backgroundColor: design.backgroundColor,
-                pointColor: design.pointColor,
-                size: 300,
-                dotType: design.dotType,
-                logoVisualSize: null,
-                logoVisualRatio: null,
-                logoImageId: null,
-              },
-            },
-          },
-          timestamp: formatDateToLocalISOString(new Date()),
-        };
-
-        setQrData(mockResponse);
-        console.log("Mock QR 데이터:", mockResponse);
         setLoading(false);
       } catch (err) {
         console.error("QR 코드 데이터 가져오기 실패:", err);
@@ -333,9 +254,10 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({
       const padding = 40;
       const borderRadius = 12;
       const topHeaderHeight = 80; // 상단 헤더 영역
-      const infoHeight = 120; // 설명 영역 높이
+      const infoHeight = 180; // 설명 영역 높이 (기존 120에서 증가)
       const dividerHeight = 2; // 구분선 높이
       const dividerMargin = 20; // 구분선 위아래 여백
+      const lineSpacing = 22; // 텍스트 줄 간격
 
       // 결과 Canvas 크기 설정
       resultCanvas.width = qrWidth + padding * 2;
@@ -407,17 +329,60 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({
         dividerHeight
       );
 
-      // 설명 텍스트
+      // 정보 텍스트 영역 시작 Y 위치
+      let currentTextY = dividerY + dividerMargin + 20;
+
+      // 시작 시간
+      const entryStartAt = qrData.data.qrcodeInfo.qrcodeEventInfo.entryStartAt;
+      if (entryStartAt) {
+        ctx.fillStyle = "#555555";
+        ctx.font = "15px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          `시작: ${formatDate(entryStartAt)}`,
+          resultCanvas.width / 2,
+          currentTextY
+        );
+        currentTextY += lineSpacing;
+      }
+
+      // 종료 시간
+      const entryEndAt = qrData.data.qrcodeInfo.qrcodeEventInfo.entryEndAt;
+      if (entryEndAt) {
+        ctx.fillStyle = "#555555";
+        ctx.font = "15px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          `종료: ${formatDate(entryEndAt)}`,
+          resultCanvas.width / 2,
+          currentTextY
+        );
+        currentTextY += lineSpacing;
+      }
+
+      // 최대 참여 인원
+      const maxAttendeeCount =
+        qrData.data.qrcodeInfo.qrcodeBenefitInfo.maxAttendeeCount;
+      if (maxAttendeeCount !== null && maxAttendeeCount !== undefined) {
+        ctx.fillStyle = "#555555";
+        ctx.font = "15px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          `최대 인원: ${maxAttendeeCount}명`,
+          resultCanvas.width / 2,
+          currentTextY
+        );
+        currentTextY += lineSpacing;
+      }
+
+      // 설명 텍스트 (위치를 currentTextY 기준으로 조정)
       const description =
         qrData.data.qrcodeInfo.qrcodeEventInfo.description || "";
-      const shortId = qrData.data.qrcodeInfo.qrcodeEventInfo.shortId || "";
+      const shortIdText = qrData.data.qrcodeInfo.qrcodeEventInfo.shortId || ""; // shortIdText로 변경
 
-      // 설명 텍스트
       ctx.fillStyle = "#333333";
       ctx.font = "16px Arial, sans-serif";
       ctx.textAlign = "center";
-
-      // 줄바꿈 처리를 위한 최대 너비 설정
       const maxWidth = resultCanvas.width - padding * 2 - 40;
 
       if (description) {
@@ -425,18 +390,18 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({
           ctx,
           description,
           resultCanvas.width / 2,
-          dividerY + dividerMargin + 20,
+          currentTextY, // 수정된 Y 위치
           maxWidth,
-          24
+          24 // wrapText 내의 lineHeight
         );
       }
 
-      // 바닥글 (코드 정보)
+      // 바닥글 (코드 정보) - Y 위치는 이전과 동일하게 유지 (하단에 고정)
       ctx.fillStyle = "#6c757d";
       ctx.font = "13px Arial, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(
-        `입장 코드: ${shortId}`,
+        `입장 코드: ${shortIdText}`,
         resultCanvas.width / 2,
         resultCanvas.height - padding / 2 - 15
       );
@@ -444,15 +409,18 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({
       // 다운로드 링크 생성
       const dataUrl = resultCanvas.toDataURL("image/png");
       const link = document.createElement("a");
-      link.download = `qrcode-${shortId}.png`;
+      link.download = `qrcode-${shortIdText}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
       console.error("QR 코드 다운로드 오류:", err);
       // 대체 다운로드 방법 (실패한 경우를 대비한 기본 방식)
       try {
+        // shortIdText를 qrData에서 다시 가져오도록 수정
+        const fallbackShortId =
+          qrData?.data.qrcodeInfo.qrcodeEventInfo.shortId || "code";
         qrCodeRef.current.download({
-          name: `qrcode-${shortId}`,
+          name: `qrcode-${fallbackShortId}`,
           extension: "png",
         });
       } catch (fallbackErr) {
@@ -580,6 +548,13 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({
               <div className="qr-code-info">
                 <table className="qr-info-table">
                   <tbody>
+                    <tr>
+                      <td className="info-label">입장 코드:</td>
+                      <td className="info-value">
+                        {qrData?.data.qrcodeInfo.qrcodeEventInfo.shortId ||
+                          "N/A"}
+                      </td>
+                    </tr>
                     <tr>
                       <td className="info-label">설명:</td>
                       <td className="info-value">
@@ -798,7 +773,15 @@ const MyQrCodes: React.FC = () => {
                   <div className="qrcode-info-item">
                     <span className="info-label">참여자 수:</span>
                     <span className="info-value">
-                      {qrCode.eventInfo.participantsCount}명
+                      {qrCode.benefitInfo.maxAttendeeCount -
+                        qrCode.benefitInfo.availableAttendeeCount}
+                      명
+                    </span>
+                  </div>
+                  <div className="qrcode-info-item">
+                    <span className="info-label">최대 인원:</span>
+                    <span className="info-value">
+                      {qrCode.benefitInfo.maxAttendeeCount}명
                     </span>
                   </div>
                 </div>

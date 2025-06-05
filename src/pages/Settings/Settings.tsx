@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserProfile, UserProfile } from "../../api/user";
+import { UserProfile } from "../../api/types";
+import { getUserProfile } from "../../api/user";
 import { useAuth } from "../../context/AuthContext";
 import "./Settings.css";
 

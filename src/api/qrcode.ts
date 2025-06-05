@@ -15,6 +15,8 @@ export interface ServerQrcodeResponse {
         secretCode: string;
         entryStartAt: string;
         entryEndAt: string;
+        isEntryEnded: boolean;
+        createdAt: string;
       };
       qrcodeDesignInfo: {
         id: string;
@@ -27,6 +29,12 @@ export interface ServerQrcodeResponse {
         logoVisualSize: number | null;
         logoVisualRatio: number | null;
         logoImageId: string | null;
+      };
+      qrcodeBenefitInfo: {
+        id: string;
+        maxAttendeeCount: number;
+        availableAttendeeCount: number;
+        isAttendeeCountLimited: boolean;
       };
     };
   };
@@ -72,6 +80,8 @@ export const createQRCode = async (
             secretCode: data.secretCode || "",
             entryStartAt: data.entryStartAt,
             entryEndAt: data.entryEndAt,
+            isEntryEnded: false,
+            createdAt: formatDateToLocalISOString(new Date()),
           },
           qrcodeDesignInfo: {
             id: "", // 서버에서 받지 못한 정보
@@ -84,6 +94,12 @@ export const createQRCode = async (
             logoVisualSize: data.logoVisualSize || null,
             logoVisualRatio: data.logoVisualRatio || null,
             logoImageId: data.logoImageId || null,
+          },
+          qrcodeBenefitInfo: {
+            id: "",
+            maxAttendeeCount: 0,
+            availableAttendeeCount: 0,
+            isAttendeeCountLimited: false,
           },
         },
       },
@@ -100,7 +116,9 @@ export const createQRCode = async (
  * @param shortId QR 코드 단축 ID
  * @returns QR 코드 이벤트 정보
  */
-export const getQRCodeEvent = async (shortId: string) => {
+export const getQRCodeEvent = async (
+  shortId: string
+): Promise<ServerQrcodeResponse> => {
   const response = await api.get(`/qrcode/event/${shortId}`);
   return response.data;
 };
@@ -133,51 +151,61 @@ export const getUserQrCodes = async () => {
     console.log("QR 코드 정보 배열:", qrcodeInfos);
 
     // QR 코드 목록을 클라이언트가 기대하는 형식으로 변환
-    const qrcodes = qrcodeInfos.map((info: any) => {
-      const { qrcodeEventInfo, qrcodeDesignInfo } = info;
+    const qrcodes = qrcodeInfos.map(
+      (info: ServerQrcodeResponse["data"]["qrcodeInfo"]) => {
+        const { qrcodeEventInfo, qrcodeDesignInfo, qrcodeBenefitInfo } = info;
 
-      // 시간대 정보를 유지하는 ISO 문자열 형식 생성 (Z 제거)
-      const formatDateToLocalISOString = (date: Date) => {
-        const pad = (num: number) => String(num).padStart(2, "0");
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-          date.getDate()
-        )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-          date.getSeconds()
-        )}`;
-      };
+        // 시간대 정보를 유지하는 ISO 문자열 형식 생성 (Z 제거) - 이 함수는 여기서만 필요하면 여기 두고, 아니면 유틸로 빼도 됩니다.
+        const formatDateToLocalISOString = (dateString: string) => {
+          if (!dateString) return new Date().toISOString(); // 기본값 제공 또는 오류 처리
+          const date = new Date(dateString);
+          const pad = (num: number) => String(num).padStart(2, "0");
+          return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+            date.getDate()
+          )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+            date.getSeconds()
+          )}`;
+        };
 
-      return {
-        id: qrcodeEventInfo.id,
-        shortId: qrcodeEventInfo.shortId,
-        title: qrcodeEventInfo.title,
-        description: qrcodeEventInfo.description,
-        url: `${window.location.origin}/qr/${qrcodeEventInfo.shortId}`,
-        createdAt: qrcodeEventInfo.entryStartAt,
-        updatedAt: formatDateToLocalISOString(new Date()),
-        eventInfo: {
-          entryStartAt: qrcodeEventInfo.entryStartAt,
-          entryEndAt: qrcodeEventInfo.entryEndAt,
-          participantsCount: 0,
-        },
-        design: {
-          backgroundColor: qrcodeDesignInfo.backgroundColor,
-          pointColor: qrcodeDesignInfo.pointColor,
-          errorCorrectionLevel: qrcodeDesignInfo.errorCorrectionLevel,
-        },
-      };
-    });
+        return {
+          id: qrcodeEventInfo.id,
+          shortId: qrcodeEventInfo.shortId,
+          title: qrcodeEventInfo.title,
+          description: qrcodeEventInfo.description,
+          url: `${window.location.origin}/qr/${qrcodeEventInfo.shortId}`, // 클라이언트에서 생성
+          createdAt: qrcodeEventInfo.createdAt || qrcodeEventInfo.entryStartAt, // 서버 DTO에 createdAt이 있으면 사용, 없으면 entryStartAt (fallback)
+          updatedAt: formatDateToLocalISOString(new Date().toISOString()), // 현재 API 응답에 없음, 임시로 현재 시간
+          eventInfo: {
+            entryStartAt: qrcodeEventInfo.entryStartAt,
+            entryEndAt: qrcodeEventInfo.entryEndAt,
+            // participantsCount는 benefitInfo에서 계산하므로 제거
+          },
+          design: {
+            backgroundColor: qrcodeDesignInfo.backgroundColor,
+            pointColor: qrcodeDesignInfo.pointColor,
+            errorCorrectionLevel: qrcodeDesignInfo.errorCorrectionLevel,
+          },
+          benefitInfo: {
+            // 추가된 정보
+            maxAttendeeCount: qrcodeBenefitInfo.maxAttendeeCount,
+            availableAttendeeCount: qrcodeBenefitInfo.availableAttendeeCount,
+            isAttendeeCountLimited: qrcodeBenefitInfo.isAttendeeCountLimited,
+          },
+        };
+      }
+    );
 
     console.log("변환된 QR 코드 목록:", qrcodes);
 
-    // 시간대 정보를 유지하는 ISO 문자열 형식 생성 (Z 제거)
-    const formatDateToLocalISOString = (date: Date) => {
-      const pad = (num: number) => String(num).padStart(2, "0");
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-        date.getDate()
-      )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-        date.getSeconds()
-      )}`;
-    };
+    // 시간대 정보를 유지하는 ISO 문자열 형식 생성 (Z 제거) - 이 함수는 위에서 이미 정의됨. 중복 제거.
+    // const formatDateToLocalISOString = (date: Date) => {
+    //   const pad = (num: number) => String(num).padStart(2, "0");
+    //   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    //     date.getDate()
+    //   )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+    //     date.getSeconds()
+    //   )}`;
+    // };
 
     // 클라이언트가 기대하는 응답 형식으로 반환
     return {
@@ -187,7 +215,7 @@ export const getUserQrCodes = async () => {
         qrcodes: qrcodes,
         totalCount: response.data.data.totalCount || qrcodes.length,
       },
-      timestamp: formatDateToLocalISOString(new Date()),
+      timestamp: new Date().toISOString(),
     };
   } catch (error) {
     console.error("QR 코드 목록 조회 오류:", error);
