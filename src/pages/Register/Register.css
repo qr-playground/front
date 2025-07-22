@@ -102,6 +102,185 @@ input:disabled {
   text-decoration: underline;
 }
 
+/* 단계별 회원가입 UI 스타일 */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.step-indicator::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  background-color: white;
+  padding: 0 10px;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+  background-color: #4a6cf7;
+  color: white;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step.active .step-label {
+  color: #4a6cf7;
+  font-weight: 600;
+}
+
+.form-step {
+  min-height: 300px;
+}
+
+.form-step h2 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.verification-info {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.resend-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #f5f7fa;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.resend-button:hover:not(:disabled) {
+  background-color: #e8eaf6;
+  border-color: #4a6cf7;
+  color: #4a6cf7;
+}
+
+.resend-button:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.resend-button.disabled {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #e57373;
+}
+
+.resend-button.disabled:hover {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #e57373;
+}
+
+.resend-info {
+  color: #666;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+.resend-info span {
+  color: #ff9800;
+  font-weight: 500;
+}
+
+.back-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.back-button:hover:not(:disabled) {
+  background-color: #f5f7fa;
+  border-color: #999;
+  color: #333;
+}
+
+.back-button:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+.success-message {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 500;
+}
+
 /* 반응형 처리 */
 @media (max-width: 768px) {
   .register-container {
@@ -110,6 +289,20 @@ input:disabled {
 
   .register-form-container {
     padding: 2rem;
+  }
+
+  .step-indicator {
+    margin-bottom: 1.5rem;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+  }
+
+  .step-number {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
   }
 }
 
@@ -126,8 +319,32 @@ input:disabled {
     font-size: 1.5rem;
   }
 
+  .form-step h2 {
+    font-size: 1.3rem;
+  }
+
   input,
-  .register-button {
+  .register-button,
+  .resend-button,
+  .back-button {
     padding: 0.7rem;
+  }
+
+  .step-indicator {
+    margin-bottom: 1rem;
+  }
+
+  .step-label {
+    font-size: 0.7rem;
+  }
+
+  .step-number {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .button-group {
+    gap: 0.5rem;
   }
 }

@@ -99,7 +99,6 @@ const QrGenerator: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isAuthenticated } = useAuth();
   const qrCodeRef = useRef<QRCodeStyling | null>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [dotType, setDotType] = useState<DotType>("square");
   const cardCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -146,14 +145,6 @@ const QrGenerator: React.FC = () => {
     dotType,
     qrSize,
   ]);
-
-  useEffect(() => {
-    if (qrCode && previewRef.current) {
-      const currentPreview = previewRef.current;
-      currentPreview.innerHTML = "";
-      qrCode.append(currentPreview);
-    }
-  }, [qrCode, previewRef]);
 
   useDebouncedEffect(
     () => {
@@ -348,15 +339,10 @@ const QrGenerator: React.FC = () => {
     // 종료 시간 계산
     const entryEndAt = new Date(entryStartAt.getTime() + entryDuration * 60000);
 
-    // 시간대 정보를 유지하는 ISO 문자열 형식 생성 (Z 제거)
-    const formatDateToLocalISOString = (date: Date) => {
-      const pad = (num: number) => String(num).padStart(2, "0");
-
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-        date.getDate()
-      )}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-        date.getSeconds()
-      )}`;
+    // 한국 시간(KST)을 UTC로 변환하여 서버에 전송
+    const formatDateToUTC = (date: Date) => {
+      // ISO 문자열로 변환하면 자동으로 UTC가 됨
+      return date.toISOString();
     };
 
     try {
@@ -364,11 +350,21 @@ const QrGenerator: React.FC = () => {
 
       // 1. 로고 이미지가 있으면 업로드
       if (options.logoImage) {
-        // base64 -> Blob 변환
-        const blob = await (await fetch(options.logoImage)).blob();
-        const file = new File([blob], "logo.png", { type: blob.type });
-        const data = await uploadImage(file);
-        logoImageId = data.id;
+        try {
+          // base64 -> Blob 변환
+          const response = await fetch(options.logoImage);
+          if (!response.ok) {
+            throw new Error("Failed to fetch logo image");
+          }
+          const blob = await response.blob();
+          const file = new File([blob], "logo.png", { type: blob.type });
+          const data = await uploadImage(file);
+          logoImageId = data.id;
+        } catch (error) {
+          console.error("로고 이미지 업로드 실패:", error);
+          setError("로고 이미지 업로드에 실패했습니다.");
+          return;
+        }
       }
 
       // 2. QR 코드 이벤트 생성
@@ -376,8 +372,8 @@ const QrGenerator: React.FC = () => {
         title: options.title,
         description: options.description,
         secretCode: useSecret ? secretCode : "",
-        entryStartAt: formatDateToLocalISOString(entryStartAt),
-        entryEndAt: formatDateToLocalISOString(entryEndAt),
+        entryStartAt: formatDateToUTC(entryStartAt),
+        entryEndAt: formatDateToUTC(entryEndAt),
         errorCorrectionLevel: options.level,
         includeMargin: false,
         backgroundColor: options.bgColor,

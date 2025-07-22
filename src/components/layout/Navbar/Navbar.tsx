@@ -90,6 +90,9 @@ const Navbar: React.FC = () => {
           <Link to="/" className="navbar-item">
             홈
           </Link>
+          <Link to="/search" className="navbar-item">
+            검색
+          </Link>
           <Link to="/generator" className="navbar-item">
             QR 코드 생성
           </Link>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { refreshAccessToken } from "./auth";
+import { getCurrentDeviceId } from "../utils/deviceId";
 
 // Vite 환경 변수에서 API 기본 URL 가져오기
 // .env 파일 (또는 .env.production 등)에 VITE_API_BASE_URL=실제API주소 형식으로 정의 필요
@@ -17,10 +18,18 @@ const api = axios.create({
 // 요청 인터셉터 설정
 api.interceptors.request.use(
   (config) => {
+    // Access Token 추가
     const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Device ID 헤더 추가
+    const deviceId = getCurrentDeviceId();
+    if (deviceId) {
+      config.headers["X-Device-ID"] = deviceId;
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

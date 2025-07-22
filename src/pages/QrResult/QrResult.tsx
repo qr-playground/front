@@ -1,8 +1,8 @@
 import QRCodeStyling from "qr-code-styling";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getImage } from "../../api/image";
 import { getQRCodeEvent } from "../../api/qrcode";
+import { formatToKoreanDateTime } from "../../utils/dateUtils";
 import "./QrResult.css";
 
 /* ---------- 타입 선언 ---------- */
@@ -89,45 +89,14 @@ const QrResult: React.FC = () => {
     const fetchQrCodeData = async () => {
       try {
         setIsLoading(true);
-        setIsReady(false);
-
         const response = await getQRCodeEvent(shortId);
-        if (cancelled) return;
-        setQrData(response as QrcodeResponse);
 
-        /* 로고 처리 */
-        const logoImageId =
-          response.data.qrcodeInfo.qrcodeDesignInfo.logoImageId;
-
-        if (!logoImageId) {
-          completeLoading(null);
-          return;
-        }
-
-        const imageUrl = await getImage(logoImageId);
-        if (!imageUrl) {
-          completeLoading(null);
-          return;
-        }
-
-        /* preload */
-        const preload = new Image();
-        preload.crossOrigin = "anonymous";
-
-        let done = false;
-        const finish = (u: string | null) => {
-          if (done) return;
-          done = true;
-          clearTimeout(tid);
-          completeLoading(u);
-        };
-
-        preload.onload = () => finish(imageUrl);
-        preload.onerror = () => finish(null);
-
-        const tid = setTimeout(() => finish(null), 3000);
-        preload.src = imageUrl;
-      } catch {
+        setQrData(response);
+        completeLoading(
+          `${window.location.origin}/guestbook/${response.data.qrcodeInfo.qrcodeEventInfo.shortId}`
+        );
+      } catch (err) {
+        console.error("QR 코드 데이터 로딩 실패:", err);
         setError("QR 코드 정보를 불러오는데 실패했습니다.");
         setIsLoading(false);
       }
@@ -390,24 +359,17 @@ const QrResult: React.FC = () => {
         ctx.font = "15px Arial, sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(
-          `시작: ${new Date(eventInfo.entryStartAt).toLocaleString()}`,
+          `시작: ${formatToKoreanDateTime(eventInfo.entryStartAt)}`,
           resultCanvas.width / 2,
           currentTextY
         );
-        currentTextY += lineSpacing + itemSpacing;
-      }
+        currentTextY += lineSpacing;
 
-      // 4. 종료 시간 (마지막 항목이므로 itemSpacing은 더하지 않음, 필요시 lineSpacing만)
-      if (eventInfo?.entryEndAt) {
-        ctx.fillStyle = "#555555";
-        ctx.font = "15px Arial, sans-serif";
-        ctx.textAlign = "center";
         ctx.fillText(
-          `종료: ${new Date(eventInfo.entryEndAt).toLocaleString()}`,
+          `종료: ${formatToKoreanDateTime(eventInfo.entryEndAt)}`,
           resultCanvas.width / 2,
           currentTextY
         );
-        // currentTextY += lineSpacing; // 다음 항목이 없으므로 Y 업데이트 불필요
       }
 
       // 바닥글 (코드 정보)
@@ -554,13 +516,13 @@ const QrResult: React.FC = () => {
               <p>
                 <span className="label">시작 시간:</span>
                 <span className="value">
-                  {new Date(qrcodeEventInfo.entryStartAt).toLocaleString()}
+                  {formatToKoreanDateTime(qrcodeEventInfo.entryStartAt)}
                 </span>
               </p>
               <p>
                 <span className="label">종료 시간:</span>
                 <span className="value">
-                  {new Date(qrcodeEventInfo.entryEndAt).toLocaleString()}
+                  {formatToKoreanDateTime(qrcodeEventInfo.entryEndAt)}
                 </span>
               </p>
               {qrcodeEventInfo.secretCode && (

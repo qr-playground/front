@@ -5,6 +5,7 @@ import {
   getQrCodeResultData,
   terminateQrCode,
 } from "../../api/qrcodeResult";
+import { formatToKoreanDateTime } from "../../utils/dateUtils";
 import "./MyQrcodeResult.css";
 
 // QR 코드 이벤트 정보 타입 정의
@@ -92,16 +93,9 @@ const MyQrcodeResult: React.FC = () => {
     fetchGuestbooks(newPage);
   };
 
-  // 날짜 포맷 함수
+  // 날짜 포맷 함수 - 한국 시간으로 변환
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    return formatToKoreanDateTime(dateString);
   };
 
   // QR 코드 수정 페이지로 이동

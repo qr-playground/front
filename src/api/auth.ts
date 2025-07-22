@@ -13,6 +13,17 @@ interface SignupRequest {
   password: string;
 }
 
+// 인증 코드 발송 요청 인터페이스
+interface SendVerificationCodeRequest {
+  phoneNumber: string;
+}
+
+// 인증 코드 검증 요청 인터페이스
+interface VerifyVerificationCodeRequest {
+  phoneNumber: string;
+  verificationCode: string;
+}
+
 // 전체 응답 인터페이스 -> 이 인터페이스는 사용되지 않으므로 삭제합니다.
 // interface AuthResponse {
 // data: ServerResponse<AuthResponseData>;
@@ -84,4 +95,18 @@ export const refreshAccessToken = async (): Promise<string | null> => {
   } catch {
     return null;
   }
+};
+
+// 인증 코드 발송
+export const sendVerificationCode = async (
+  data: SendVerificationCodeRequest
+): Promise<void> => {
+  await api.post("/auth/send-verification-code", data);
+};
+
+// 인증 코드 검증
+export const verifyVerificationCode = async (
+  data: VerifyVerificationCodeRequest
+): Promise<void> => {
+  await api.post("/auth/verify-verification-code", data);
 };

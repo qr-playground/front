@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/layout/Layout";
@@ -11,11 +12,26 @@ import Login from "./pages/Login";
 import QrGenerator from "./pages/QrGenerator";
 import QrResult from "./pages/QrResult/QrResult";
 import Register from "./pages/Register";
+import Search from "./pages/Search";
 import MyQrcodeResult from "./pages/Settings/MyQrcodeResult";
 import MyQrCodes from "./pages/Settings/MyQrCodes";
 import Settings from "./pages/Settings/Settings";
+import { initializeDeviceId } from "./utils/deviceId";
 
 function App() {
+  // Device ID 초기화
+  useEffect(() => {
+    const setupDeviceId = async () => {
+      try {
+        await initializeDeviceId();
+      } catch (error) {
+        console.error("Device ID 초기화 중 오류 발생:", error);
+      }
+    };
+
+    setupDeviceId();
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter basename="/">
@@ -24,6 +40,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/search" element={<Search />} />
             <Route path="/generator" element={<QrGenerator />} />
             <Route path="/generator/edit/:shortId" element={<QrGenerator />} />
             <Route path="/qr-result/:shortId" element={<QrResult />} />

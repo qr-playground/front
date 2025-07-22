@@ -14,13 +14,21 @@ const Home: React.FC = () => {
         활용해보세요.
       </p>
       <div className="home-buttons">
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/generator")}
-        >
-          QR생성하기 코드 
-        </button>
-        <button className="btn btn-outline" onClick={() => navigate("/about")}>
+        <div className="home-buttons-row">
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/generator")}
+          >
+            QR 코드 생성하기
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/search")}
+          >
+            이벤트 찾아보기
+          </button>
+        </div>
+        <button className="btn btn-accent" onClick={() => navigate("/about")}>
           자세히 알아보기
         </button>
       </div>

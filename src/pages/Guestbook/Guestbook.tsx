@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createGuestbook } from "../../api/guestbook";
 import { getQRCodeEvent, ServerQrcodeResponse } from "../../api/qrcode";
+import { formatToKoreanDateTime } from "../../utils/dateUtils";
 import "./Guestbook.css";
 
 // QR 코드 이벤트 정보 타입 정의
@@ -215,25 +216,13 @@ const Guestbook: React.FC = () => {
             <div className="detail-item">
               <span className="detail-label">입장 시작 시간:</span>
               <span className="detail-value">
-                {new Intl.DateTimeFormat("ko-KR", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }).format(new Date(eventData.qrcodeEventInfo.entryStartAt))}
+                {formatToKoreanDateTime(eventData.qrcodeEventInfo.entryStartAt)}
               </span>
             </div>
             <div className="detail-item">
               <span className="detail-label">입장 종료 시간:</span>
               <span className="detail-value">
-                {new Intl.DateTimeFormat("ko-KR", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }).format(new Date(eventData.qrcodeEventInfo.entryEndAt))}
+                {formatToKoreanDateTime(eventData.qrcodeEventInfo.entryEndAt)}
               </span>
             </div>
             <div className="detail-item">

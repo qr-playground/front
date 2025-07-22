@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getQRCodeEvent, getUserQrCodes } from "../../api/qrcode";
 import { useAuth } from "../../context/AuthContext";
+import { formatToKoreanDateTime } from "../../utils/dateUtils";
 import "./MyQrCodes.css";
 
 interface QrCodeItem {
@@ -653,17 +654,9 @@ const MyQrCodes: React.FC = () => {
     setSelectedQrCodeId(null);
   };
 
-  // 날짜 포맷 함수 - 시간과 분까지 표시하도록 수정
+  // 날짜 포맷 함수 - 한국 시간으로 변환
   const formatDate = (dateString: string): string => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    return formatToKoreanDateTime(dateString);
   };
 
   // QR 코드 상태 확인 (시작 시간과 종료 시간을 모두 고려)

@@ -10,19 +10,6 @@ export default defineConfig({
     port: 5173,
     open: false, // 브라우저 자동 실행
     strictPort: true, // 포트가 사용 중이면 다음 포트를 시도하지 않고 실패
-    // SPA에서 새로고침 시 404 오류를 방지하기 위한 설정
-    proxy: {
-      // 모든 경로를 index.html로 리디렉션
-      "/*": {
-        target: "http://localhost:5173",
-        changeOrigin: true,
-        bypass: function (req) {
-          if (req.headers.accept?.includes("html")) {
-            return "/index.html";
-          }
-        },
-      },
-    },
   },
   // 빌드 후에도 새로고침이 작동하도록 설정
   build: {
