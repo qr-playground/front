@@ -1,5 +1,5 @@
 import api from "./axios";
-import { QrcodeEventData } from "./types";
+import { QrcodeEventCreateData, QrcodeEventData } from "./types";
 
 // 서버에서 반환하는 QR 코드 이벤트 응답 구조
 export interface ServerQrcodeResponse {
@@ -47,7 +47,7 @@ export interface ServerQrcodeResponse {
  * @returns 생성된 QR 코드 정보
  */
 export const createQRCode = async (
-  data: QrcodeEventData
+  data: QrcodeEventCreateData // QrcodeEventData에서 QrcodeEventCreateData로 변경
 ): Promise<ServerQrcodeResponse> => {
   const response = await api.post("/qrcode/event", data);
 

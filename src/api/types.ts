@@ -34,8 +34,8 @@ export interface UserProfile extends UserInfo {
   qrcodeInfos?: QRCodeResponse[];
 }
 
-// QR 코드 데이터 인터페이스
-export interface QrcodeEventData {
+// QR 코드 생성 요청 데이터 인터페이스 (클라이언트에서 서버로 전송)
+export interface QrcodeEventCreateData {
   title: string;
   description: string;
   secretCode: string;
@@ -51,6 +51,31 @@ export interface QrcodeEventData {
   logoVisualRatio?: number;
   logoImageId?: string;
   maxAttendeeCount: number;
+}
+
+// QR 코드 데이터 인터페이스 (서버에서 반환되는 완전한 데이터)
+export interface QrcodeEventData {
+  id: string;
+  shortId: string;
+  title: string;
+  description: string;
+  secretCode: string;
+  entryStartAt: string;
+  entryEndAt: string;
+  isEntryEnded: boolean;
+  createdAt: string;
+  errorCorrectionLevel: string; // "L" | "M" | "Q" | "H"
+  includeMargin: boolean;
+  backgroundColor: string;
+  pointColor: string;
+  size: number;
+  dotType: string;
+  logoVisualSize?: number;
+  logoVisualRatio?: number;
+  logoImageId?: string;
+  maxAttendeeCount: number;
+  availableAttendeeCount?: number;
+  isAttendeeCountLimited?: boolean;
 }
 
 // QR 코드 응답 인터페이스

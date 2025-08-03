@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getGuestbooksPaginated } from "../../api/guestbook";
 import { getQRCodeEvent, ServerQrcodeResponse } from "../../api/qrcode";
 import { formatToKoreanDateTime } from "../../utils/dateUtils";
@@ -33,7 +33,6 @@ interface PaginationInfo {
 
 const GuestbookResult: React.FC = () => {
   const { shortId } = useParams<{ shortId: string }>();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // eventData 타입을 ServerQrcodeResponse의 qrcodeInfo 부분으로 변경

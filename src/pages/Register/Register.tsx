@@ -34,7 +34,6 @@ const Register: React.FC = () => {
   const [errors, setErrors] = useState<Partial<RegisterFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState("");
-  const [codeSent, setCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [resendCount, setResendCount] = useState(0);
   const [resendLimitResetTime, setResendLimitResetTime] = useState(0);
@@ -95,7 +94,6 @@ const Register: React.FC = () => {
 
     // 전화번호 변경 시 인증 코드 관련 상태만 초기화 (재발송 제한은 유지)
     if (value !== formData.phoneNumber) {
-      setCodeSent(false);
       setCountdown(0);
       // 재발송 제한은 IP + Device ID 기반이므로 유지
     }
@@ -155,7 +153,6 @@ const Register: React.FC = () => {
     setIsSubmitting(true);
     try {
       await sendVerificationCode({ phoneNumber: formData.phoneNumber });
-      setCodeSent(true);
       setCountdown(180); // 3분 카운트다운
       setCurrentStep(RegisterStep.CODE_VERIFICATION);
 
