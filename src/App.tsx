@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -17,24 +17,44 @@ import MyQrcodeResult from "./pages/Settings/MyQrcodeResult";
 import MyQrCodes from "./pages/Settings/MyQrCodes";
 import Settings from "./pages/Settings/Settings";
 import { initializeDeviceId } from "./utils/deviceId";
+import { initializeGA, trackPageView } from "./utils/gtag";
+
+// 페이지 변경 시 구글 애널리틱스 추적하는 컴포넌트
+function GATracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+
+  return null;
+}
 
 function App() {
-  // Device ID 초기화
+  // Device ID 및 구글 애널리틱스 초기화
   useEffect(() => {
-    const setupDeviceId = async () => {
+    const setupApp = async () => {
       try {
+        // Device ID 초기화
         await initializeDeviceId();
+
+        // 구글 애널리틱스 초기화
+        initializeGA();
+
+        // 첫 페이지 로드 추적
+        trackPageView(window.location.pathname + window.location.search);
       } catch (error) {
-        console.error("Device ID 초기화 중 오류 발생:", error);
+        console.error("앱 초기화 중 오류 발생:", error);
       }
     };
 
-    setupDeviceId();
+    setupApp();
   }, []);
 
   return (
     <AuthProvider>
       <BrowserRouter basename="/">
+        <GATracker />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
