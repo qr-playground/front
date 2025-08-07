@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { uploadImage } from "../../api/image";
 import { createQRCode } from "../../api/qrcode";
 import { useAuth } from "../../context/AuthContext";
-import { trackQRCodeGeneration, trackUserAction } from "../../utils/gtag";
 import "./QrGenerator.css";
 
 interface QROptions {
@@ -389,10 +388,6 @@ const QrGenerator: React.FC = () => {
 
       // response에서 shortId 추출
       const shortId = response.data.qrcodeInfo.qrcodeEventInfo.shortId;
-
-      // 구글 애널리틱스 이벤트 추적
-      trackQRCodeGeneration("guestbook");
-      trackUserAction("QR Code Created", shortId);
 
       navigate(`/qr-result/${shortId}`);
     } catch (err) {

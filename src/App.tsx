@@ -17,9 +17,9 @@ import MyQrcodeResult from "./pages/Settings/MyQrcodeResult";
 import MyQrCodes from "./pages/Settings/MyQrCodes";
 import Settings from "./pages/Settings/Settings";
 import { initializeDeviceId } from "./utils/deviceId";
-import { initializeGA, trackPageView } from "./utils/gtag";
+import { trackPageView } from "./utils/gtag";
 
-// 페이지 변경 시 구글 애널리틱스 추적하는 컴포넌트
+// 페이지 변경 시 구글 애널리틱스 추적
 function GATracker() {
   const location = useLocation();
 
@@ -31,17 +31,11 @@ function GATracker() {
 }
 
 function App() {
-  // Device ID 및 구글 애널리틱스 초기화
+  // Device ID 초기화 및 첫 페이지 추적
   useEffect(() => {
     const setupApp = async () => {
       try {
-        // Device ID 초기화
         await initializeDeviceId();
-
-        // 구글 애널리틱스 초기화
-        initializeGA();
-
-        // 첫 페이지 로드 추적
         trackPageView(window.location.pathname + window.location.search);
       } catch (error) {
         console.error("앱 초기화 중 오류 발생:", error);
