@@ -15,10 +15,10 @@ const Home: React.FC = () => {
       </p>
       <div className="home-buttons">
         <div className="home-buttons-row">
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/generator")}
-        >
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/generator")}
+          >
             QR 코드 생성하기
           </button>
           <button
@@ -26,11 +26,28 @@ const Home: React.FC = () => {
             onClick={() => navigate("/search")}
           >
             이벤트 찾아보기
-        </button>
+          </button>
         </div>
         <button className="btn btn-accent" onClick={() => navigate("/about")}>
           자세히 알아보기
         </button>
+      </div>
+      <div className="home-links">
+        <a
+          href="https://velog.io/@suhwani/posts"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          🔗 개발자 블로그 바로가기
+        </a>
+        <span className="divider">·</span>
+        <a
+          href="https://github.com/qr-playground/server"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          🔗 GitHub 저장소 바로가기
+        </a>
       </div>
     </div>
   );

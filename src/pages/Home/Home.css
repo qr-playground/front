@@ -108,6 +108,26 @@ p {
   }
 }
 
+.home-links {
+  margin-top: 1rem;
+  color: #777;
+  font-size: 0.95rem;
+}
+
+.home-links a {
+  color: #6a7bd9; /* 덜 튀는 톤다운 블루 */
+  text-decoration: none;
+}
+
+.home-links a:hover {
+  text-decoration: underline;
+}
+
+.home-links .divider {
+  margin: 0 0.5rem;
+  color: #bbb;
+}
+
 @media (max-width: 480px) {
   .home-container {
     padding: 1.5rem 1rem;
