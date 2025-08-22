@@ -1,5 +1,5 @@
 import api from "./axios";
-import { ServerResponse, UserProfile } from "./types";
+import { ServerResponse, StatisticTotalResponse, UserProfile } from "./types";
 
 /**
  * 현재 로그인한 사용자의 프로필 정보를 가져옵니다.
@@ -14,3 +14,11 @@ export const getUserProfile = async (): Promise<UserProfile> => {
     throw error;
   }
 };
+
+export const fetchStatisticTotal =
+  async (): Promise<StatisticTotalResponse> => {
+    const response = await api.get<ServerResponse<StatisticTotalResponse>>(
+      "/statistic/qrcode/user/total"
+    );
+    return response.data.data;
+  };

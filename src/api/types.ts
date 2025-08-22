@@ -6,6 +6,16 @@ export interface ServerResponse<T> {
   timestamp: string;
 }
 
+export interface StatisticTotalResponse {
+  statisticInfo: {
+    totalUserCount: number;
+    totalQrcodeEventCount: number;
+    totalGuestbookCount: number;
+    avgQrcodeEventsPerUser: number;
+    avgGuestbooksPerQrcodeEvent: number;
+  };
+}
+
 // 사용자 정보 인터페이스
 export interface UserInfo {
   id: string; // UUID (서버: java.util.UUID)

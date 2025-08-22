@@ -26,8 +26,6 @@ const initGA = () => {
     };
   window.gtag("js", new Date());
   window.gtag("config", gaTrackingId);
-
-  console.log("✅ 네이티브 GA 초기화 완료:", gaTrackingId);
 };
 
 // 초기화 실행
@@ -36,7 +34,6 @@ initGA();
 // 페이지뷰 추적 - 네이티브 gtag 사용
 export const trackPageView = (path: string) => {
   if (!gaTrackingId) {
-    console.warn("❌ GA 추적 ID가 없습니다");
     return;
   }
 
@@ -45,13 +42,7 @@ export const trackPageView = (path: string) => {
       page_title: document.title,
       page_location: window.location.href,
     });
-
-    console.log("✅ GA 페이지 추적:", {
-      path,
-      url: window.location.href,
-      title: document.title,
-    });
   } else {
-    console.warn("❌ gtag이 아직 로드되지 않았습니다");
+    // gtag not loaded yet; skip silently
   }
 };
