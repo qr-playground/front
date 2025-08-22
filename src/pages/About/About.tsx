@@ -55,7 +55,8 @@ const About: React.FC = () => {
       <div className="about-header">
         <h1>QR World에 대해 알아보세요</h1>
         <p className="about-subtitle">
-          더 많은 정보와 연결을 위한 QR 코드 솔루션
+          소규모 이벤트나 동아리·단체 모임에서 빠르고 공정하게 사람을 모집할 때
+          활용해 보세요.
         </p>
       </div>
 
