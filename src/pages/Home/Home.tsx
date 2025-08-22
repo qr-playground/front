@@ -41,30 +41,21 @@ const Home: React.FC = () => {
             </p>
             {stats ? (
               <div className="home-stats-callout">
-                지금까지{" "}
-                <b>{stats.statisticInfo.totalUserCount.toLocaleString()}</b>
-                명의 사용자가{" "}
+                총{" "}
                 <b>
                   {stats.statisticInfo.totalQrcodeEventCount.toLocaleString()}
                 </b>
-                개의 이벤트를 만들고, 총
+                개의 이벤트가 만들어졌고,{" "}
                 <b>
-                  {" "}
                   {stats.statisticInfo.totalGuestbookCount.toLocaleString()}
                 </b>
-                개의 방명록을 남겼습니다.
+                명이 방명록을 남겼습니다.
                 <br />
-                사용자 1명당 평균
+                이벤트 1개당 평균{" "}
                 <b>
-                  {" "}
-                  {stats.statisticInfo.avgQrcodeEventsPerUser.toLocaleString()}
-                </b>
-                개의 이벤트를 만들고, 이벤트 1개당 평균
-                <b>
-                  {" "}
                   {stats.statisticInfo.avgGuestbooksPerQrcodeEvent.toLocaleString()}
                 </b>
-                개의 참여가 모이고 있어요.
+                명이 참여하고 있어요!
               </div>
             ) : (
               <div className="home-stats-callout">
