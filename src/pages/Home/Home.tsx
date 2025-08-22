@@ -24,8 +24,8 @@ const Home: React.FC = () => {
       <div className="announcement" role="region" aria-label="이벤트 안내">
         <span className="announcement-badge">이벤트</span>
         <div className="announcement-text">
-          현재 이벤트를 진행 중입니다. 각 QR 코드마다 <b>3명</b>을 선정해 소정의
-          상품을 드립니다.
+          현재 이벤트를 진행 중입니다. 각 QR 코드마다 <b>일부 참가자</b>에게 <b>소정의
+          상품</b>을 드립니다.
         </div>
       </div>
       <div className="home-scale-wrap">
