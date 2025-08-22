@@ -111,6 +111,48 @@ const QrGenerator: React.FC = () => {
 
   const getLogoImage = () => options.logoImage || undefined;
 
+  // 텍스트(제목/설명)만 다시 그릴 때 사용할 헬퍼
+  const drawTextOverlays = (
+    ctx: CanvasRenderingContext2D,
+    startY: number,
+    qrBottomY: number
+  ) => {
+    // 텍스트 영역만 지우고 다시 그림
+    ctx.clearRect(0, qrBottomY, CARD_WIDTH, CARD_HEIGHT - qrBottomY);
+
+    // 제목
+    const titleText = options.title.trim() ? options.title : "QR 코드";
+    ctx.fillStyle = "#333";
+    ctx.font = "bold 24px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(titleText, CARD_WIDTH / 2, startY + TITLE_HEIGHT / 2 + 60);
+
+    // 설명(자동 줄바꿈)
+    const descText = options.description.trim()
+      ? options.description
+      : "QR 코드 설명을 입력하세요.";
+    ctx.fillStyle = "#666";
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    let y = startY + TITLE_HEIGHT + 60;
+    const maxWidth = CARD_WIDTH - CARD_PADDING * 2;
+    const words = descText.split(" ");
+    let line = "";
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + " ";
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && i > 0) {
+        ctx.fillText(line, CARD_WIDTH / 2, y);
+        line = words[i] + " ";
+        y += 22;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, CARD_WIDTH / 2, y);
+  };
+
   useEffect(() => {
     const qr = new QRCodeStyling({
       width: qrSize,
@@ -146,101 +188,68 @@ const QrGenerator: React.FC = () => {
     qrSize,
   ]);
 
+  // 1) QR 그리기: QR 관련 값이 바뀔 때만 전체 캔버스 갱신
+  useEffect(() => {
+    if (!cardCanvasRef.current) return;
+    const canvas = cardCanvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // 전체 초기화 및 배경
+    ctx.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+    // 그림자 효과 (QR 배경)
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.08)";
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 6;
+    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    ctx.restore();
+
+    if (qrCodeRef.current) {
+      qrCodeRef.current.update({ width: qrSize, height: qrSize });
+      qrCodeRef.current.getRawData("png").then((blob: Blob | Buffer | null) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob as Blob);
+        const img = new window.Image();
+        img.onload = () => {
+          ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+          URL.revokeObjectURL(url);
+          // 초기 텍스트 1회 그리기
+          drawTextOverlays(ctx, qrY + qrSize, qrY + qrSize);
+        };
+        img.src = url;
+      });
+    }
+  }, [
+    qrCode,
+    options.value,
+    options.fgColor,
+    options.bgColor,
+    options.logoImage,
+    options.logoSize,
+    options.level,
+    dotType,
+    qrSize,
+    CARD_WIDTH,
+    CARD_HEIGHT,
+    qrX,
+    qrY,
+  ]);
+
+  // 2) 텍스트만 갱신: 제목/설명 변경 시, 텍스트 영역만 지우고 다시 그림
   useDebouncedEffect(
     () => {
       if (!cardCanvasRef.current) return;
       const canvas = cardCanvasRef.current;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-
-      // 캔버스 초기화
-      ctx.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
-
-      // 그림자 효과
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.08)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 6;
-      ctx.fillRect(qrX, qrY, qrSize, qrSize);
-      ctx.restore();
-
-      // QR 코드 업데이트 및 그리기
-      if (qrCodeRef.current) {
-        qrCodeRef.current.update({
-          width: qrSize,
-          height: qrSize,
-        });
-        qrCodeRef.current
-          .getRawData("png")
-          .then((blob: Blob | Buffer | null) => {
-            if (!blob) return;
-            const url = URL.createObjectURL(blob as Blob);
-            const img = new window.Image();
-            img.onload = () => {
-              ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
-              URL.revokeObjectURL(url);
-
-              // 제목
-              const titleText = options.title.trim()
-                ? options.title
-                : "QR 코드";
-              ctx.fillStyle = "#333";
-              ctx.font = "bold 24px Arial";
-              ctx.textAlign = "center";
-              ctx.textBaseline = "middle";
-              ctx.fillText(
-                titleText,
-                CARD_WIDTH / 2,
-                qrY + qrSize + TITLE_HEIGHT / 2 + 60
-              );
-
-              // 설명
-              const descText = options.description.trim()
-                ? options.description
-                : "QR 코드 설명을 입력하세요.";
-              ctx.fillStyle = "#666";
-              ctx.font = "16px Arial";
-              ctx.textAlign = "center";
-              let y = qrY + qrSize + TITLE_HEIGHT + 60;
-              const maxWidth = CARD_WIDTH - CARD_PADDING * 2;
-              const words = descText.split(" ");
-              let line = "";
-              for (let i = 0; i < words.length; i++) {
-                const testLine = line + words[i] + " ";
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && i > 0) {
-                  ctx.fillText(line, CARD_WIDTH / 2, y);
-                  line = words[i] + " ";
-                  y += 22;
-                } else {
-                  line = testLine;
-                }
-              }
-              ctx.fillText(line, CARD_WIDTH / 2, y);
-            };
-            img.src = url;
-          });
-      }
+      drawTextOverlays(ctx, qrY + qrSize, qrY + qrSize);
     },
-    [
-      qrCode,
-      options.title,
-      options.description,
-      options.fgColor,
-      options.bgColor,
-      options.logoImage,
-      options.logoSize,
-      options.level,
-      dotType,
-      qrSize,
-      CARD_WIDTH,
-      CARD_HEIGHT,
-      qrX,
-      qrY,
-    ],
-    500
+    [options.title, options.description],
+    300
   );
 
   // const handleCopyUrl = () => { // 미사용 함수 주석 처리
