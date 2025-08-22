@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchStatisticTotal } from "../../api/statistic";
+import type { StatisticTotalResponse } from "../../api/types";
 import "./Home.css";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [mau, setMau] = useState<number | null>(null);
+  const [stats, setStats] = useState<StatisticTotalResponse | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
         const data = await fetchStatisticTotal();
-        setMau(data.statisticInfo.totalUserCount);
+        setStats(data);
       } catch {
-        // 에러 시에도 영역은 노출되도록 0으로 표기
-        setMau(0);
+        setStats(null);
       }
     })();
   }, []);
@@ -31,12 +31,35 @@ const Home: React.FC = () => {
             소규모 이벤트나 동아리·단체 모임에서 빠르고 공정하게 사람을 모집할
             때 활용해 보세요.
           </p>
-          <div style={{ marginTop: 6, color: "#7a7a7a", fontSize: "0.95rem" }}>
-            총 가입 사용자 수:
-            <b style={{ marginLeft: 6 }}>
-              {mau === null ? "집계 중" : mau.toLocaleString()}
-            </b>
-          </div>
+          {stats ? (
+            <div className="home-stats-callout">
+              지금까지{" "}
+              <b>{stats.statisticInfo.totalUserCount.toLocaleString()}</b>
+              명의 사용자가{" "}
+              <b>
+                {stats.statisticInfo.totalQrcodeEventCount.toLocaleString()}
+              </b>
+              개의 이벤트를 만들고, 총
+              <b> {stats.statisticInfo.totalGuestbookCount.toLocaleString()}</b>
+              개의 방명록을 남겼습니다.
+              <br />
+              사용자 1명당 평균
+              <b>
+                {" "}
+                {stats.statisticInfo.avgQrcodeEventsPerUser.toLocaleString()}
+              </b>
+              개의 이벤트를 만들고, 이벤트 1개당 평균
+              <b>
+                {" "}
+                {stats.statisticInfo.avgGuestbooksPerQrcodeEvent.toLocaleString()}
+              </b>
+              개의 참여가 모이고 있어요.
+            </div>
+          ) : (
+            <div className="home-stats-callout">
+              서비스 지표를 집계 중입니다…
+            </div>
+          )}
           <div className="home-buttons">
             <div className="home-buttons-row">
               <button

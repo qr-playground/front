@@ -147,6 +147,36 @@ p {
   color: #bbb;
 }
 
+.home-stats {
+  margin-top: 8px;
+  color: #7a7a7a;
+  font-size: 0.95rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.home-stats .divider {
+  margin: 0 6px;
+  color: #bbb;
+}
+
+.home-stats-sub {
+  width: 100%;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.home-stats-callout {
+  margin-top: 10px;
+  color: #6f7a86;
+  font-size: 1rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
 @media (max-width: 480px) {
   .home-container {
     padding: 1.5rem 1rem;
