@@ -17,9 +17,9 @@
 
 .home-scale {
   /* 배율 조절: 필요 시 1.1~1.25 사이로 조절 */
-  transform: scale(1.25);
+  transform: scale(1.15);
   transform-origin: top center;
-  width: calc(100% / 1.25);
+  width: calc(100% / 1.15);
 }
 
 h1 {
