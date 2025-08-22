@@ -17,20 +17,63 @@
 
 .home-scale {
   /* 배율 조절: 필요 시 1.1~1.25 사이로 조절 */
-  transform: scale(1.15);
+  transform: scale(1.1);
   transform-origin: top center;
-  width: calc(100% / 1.15);
+  width: calc(100% / 1.1);
+}
+
+.announcement {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 1.2rem auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.9rem 1.1rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #eaf2ff 0%, #fff 60%);
+  border: 1px solid #cfe0ff;
+  box-shadow: 0 8px 20px rgba(80, 120, 250, 0.12);
+}
+
+.announcement-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.28rem 0.7rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #2251d1;
+  background: #dce8ff;
+  border: 1px solid #b7cdfb;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.announcement-text {
+  color: #244;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .announcement {
+    padding: 0.8rem 1rem;
+    gap: 10px;
+  }
+  .announcement-text {
+    font-size: 1rem;
+  }
 }
 
 h1 {
-  font-size: 3.4rem;
+  font-size: 3.8rem;
   margin-bottom: 1.5rem;
   color: #333;
   text-align: center;
 }
 
 p {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: #666;
   text-align: center;
   max-width: 900px;
@@ -55,14 +98,14 @@ p {
 }
 
 .btn {
-  padding: 0.9rem 1.8rem;
+  padding: 1rem 2rem;
   border-radius: 8px;
   font-weight: 500;
-  font-size: 1.2rem;
+  font-size: 2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
-  min-height: 60px;
+  min-height: 64px;
   white-space: nowrap;
 }
 
@@ -114,16 +157,16 @@ p {
   }
 
   h1 {
-    font-size: 2.6rem;
+    font-size: 2.8rem;
   }
 
   p {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
   }
 
   .btn {
-    font-size: 1.15rem;
-    min-height: 56px;
+    font-size: 1.5rem;
+    min-height: 58px;
   }
 }
 
@@ -172,7 +215,7 @@ p {
 .home-stats-callout {
   margin-top: 10px;
   color: #6f7a86;
-  font-size: 1rem;
+  font-size: 1.1rem;
   text-align: center;
   line-height: 1.6;
 }
@@ -183,17 +226,17 @@ p {
   }
 
   h1 {
-    font-size: 2.1rem;
+    font-size: 2.3rem;
   }
 
   p {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     margin-bottom: 1.5rem;
   }
 
   .btn {
-    font-size: 1.08rem;
-    min-height: 52px;
+    font-size: 1.15rem;
+    min-height: 54px;
   }
 
   .home-buttons {
