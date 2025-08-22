@@ -24,7 +24,7 @@ function GATracker() {
   const location = useLocation();
 
   useEffect(() => {
-    trackPageView(location.pathname + location.search);
+    trackPageView();
   }, [location]);
 
   return null;
@@ -36,7 +36,7 @@ function App() {
     const setupApp = async () => {
       try {
         await initializeDeviceId();
-        trackPageView(window.location.pathname + window.location.search);
+        trackPageView();
       } catch (error) {
         console.error("앱 초기화 중 오류 발생:", error);
       }
