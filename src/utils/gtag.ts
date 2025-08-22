@@ -1,7 +1,9 @@
-// 네이티브 gtag 타입 선언
+// 네이티브 gtag 타입 선언 (any 지양)
+type GtagFunction = ((...args: unknown[]) => void) & { q?: unknown[] };
+
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
+    gtag: GtagFunction;
   }
 }
 
@@ -17,13 +19,14 @@ const initGA = () => {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${gaTrackingId}`;
   document.head.appendChild(script);
 
-  // gtag 초기화
-  window.gtag =
-    window.gtag ||
-    function () {
-      (window.gtag as any).q = (window.gtag as any).q || [];
-      (window.gtag as any).q.push(arguments);
+  // gtag 초기화 (rest parameter 사용, arguments 미사용)
+  if (!window.gtag) {
+    const gtagShim: GtagFunction = (...args: unknown[]) => {
+      gtagShim.q = gtagShim.q || [];
+      gtagShim.q.push(args);
     };
+    window.gtag = gtagShim;
+  }
   window.gtag("js", new Date());
   window.gtag("config", gaTrackingId);
 };
@@ -32,7 +35,7 @@ const initGA = () => {
 initGA();
 
 // 페이지뷰 추적 - 네이티브 gtag 사용
-export const trackPageView = (path: string) => {
+export const trackPageView = () => {
   if (!gaTrackingId) {
     return;
   }
