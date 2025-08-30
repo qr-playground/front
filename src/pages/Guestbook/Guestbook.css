@@ -209,7 +209,7 @@
 }
 
 .submit-button {
-  background-color: #3b82f6;
+  background-color: #60a5fa; /* 활성 기본: 밝은 파랑 */
   color: white;
   border: none;
   padding: 0.85rem 1.5rem;
@@ -221,8 +221,18 @@
   width: 100%;
 }
 
-.submit-button:hover {
-  background-color: #2563eb;
+.submit-button:not(:disabled):hover {
+  background-color: #2563eb; /* 활성 호버: 진한 파랑 */
+}
+
+.submit-button:disabled {
+  background-color: #e5e7eb; /* 비활성: 회색 */
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.submit-button:disabled:hover {
+  background-color: #e5e7eb;
 }
 
 .success-actions {

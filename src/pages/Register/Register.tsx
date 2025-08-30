@@ -302,6 +302,20 @@ const Register: React.FC = () => {
     return isSubmitting || countdown > 0 || resendCount >= 5;
   };
 
+  // 전화번호 표시용 하이픈 포맷 (저장 값은 숫자만 유지)
+  const formatPhone = (raw: string): string => {
+    const digits = raw.replace(/\D/g, "");
+    const a = digits.slice(0, 3);
+    const b = digits.slice(3, 7);
+    const c = digits.slice(7, 11);
+
+    if (digits.length <= 3) return a;
+    if (digits.length <= 7) return `${a}-${digits.slice(3)}`;
+    if (digits.length <= 10)
+      return `${a}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    return `${a}-${b}-${c}`;
+  };
+
   const renderStepIndicator = () => (
     <div className="step-indicator">
       <div
@@ -341,7 +355,7 @@ const Register: React.FC = () => {
           id="phoneNumber"
           name="phoneNumber"
           placeholder="01012345678"
-          value={formData.phoneNumber}
+          value={formatPhone(formData.phoneNumber)}
           onChange={handlePhoneChange}
           disabled={isSubmitting}
         />

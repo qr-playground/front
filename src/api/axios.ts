@@ -1,6 +1,6 @@
 import axios from "axios";
-import { refreshAccessToken } from "./auth";
 import { getCurrentDeviceId } from "../utils/deviceId";
+import { refreshAccessToken } from "./auth";
 
 // Vite 환경 변수에서 API 기본 URL 가져오기
 // .env 파일 (또는 .env.production 등)에 VITE_API_BASE_URL=실제API주소 형식으로 정의 필요
@@ -40,8 +40,10 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const status = error.response?.status;
+    const isAuthError = status === 401 || status === 403;
     if (
-      error.response?.status === 401 &&
+      isAuthError &&
       !originalRequest._retry &&
       !originalRequest.url.includes("/auth/login") &&
       !originalRequest.url.includes("/auth/refresh")
@@ -49,6 +51,12 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       const newAccessToken = await refreshAccessToken();
       if (newAccessToken) {
+        // 이후 요청을 위해 기본 헤더 업데이트
+        api.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${newAccessToken}`;
+        // 실패했던 요청에 새 토큰 반영 후 재시도
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } else {

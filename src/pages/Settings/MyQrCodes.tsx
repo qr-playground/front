@@ -659,19 +659,26 @@ const MyQrCodes: React.FC = () => {
     return formatToKoreanDateTime(dateString);
   };
 
+  // 타임존 미표기(예: YYYY-MM-DDTHH:mm:ss)면 UTC로 간주해 파싱
+  const parseApiDate = (s: string | null | undefined): Date | null => {
+    if (!s) return null;
+    const hasZone = /[zZ]|[+-]\d{2}:\d{2}$/.test(s);
+    return hasZone ? new Date(s) : new Date(`${s}Z`);
+  };
+
   // QR 코드 상태 확인 (시작 시간과 종료 시간을 모두 고려)
   const getQrStatus = (
     startDate: string,
     endDate: string
   ): { status: string; className: string } => {
     const now = new Date();
-    const startAt = new Date(startDate);
-    const endAt = new Date(endDate);
+    const startAt = parseApiDate(startDate);
+    const endAt = parseApiDate(endDate);
 
-    if (now < startAt) {
+    if (startAt && now < startAt) {
       // 시작 시간보다 이전이면 "예정됨"
       return { status: "예정됨", className: "qr-status-pending" };
-    } else if (now > endAt) {
+    } else if (endAt && now > endAt) {
       // 종료 시간보다 이후면 "만료됨"
       return { status: "만료됨", className: "qr-status-expired" };
     } else {
@@ -789,7 +796,7 @@ const MyQrCodes: React.FC = () => {
                     to={`/settings/my-qrcodes/${qrCode.shortId}/result`}
                     className="qrcode-action-button results-button"
                   >
-                    결과 보기
+                    현황 보기
                   </Link>
                 </div>
               </div>

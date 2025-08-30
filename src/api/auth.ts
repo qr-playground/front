@@ -1,3 +1,4 @@
+import axios from "axios";
 import api from "./axios";
 import { AuthResponseData, ServerResponse, TokenInfo } from "./types";
 
@@ -83,9 +84,14 @@ export const refreshAccessToken = async (): Promise<string | null> => {
   const refreshToken = localStorage.getItem("refreshToken");
   if (!refreshToken) return null;
   try {
-    const response = await api.post<ServerResponse<{ tokenInfo: TokenInfo }>>(
-      "/auth/refresh",
-      { refreshToken }
+    // 공용 인스턴스를 쓰면 만료된 Authorization 헤더가 포함될 수 있어 별도 호출 사용
+    const baseURL =
+      (import.meta as any).env?.VITE_API_BASE_URL ||
+      "http://localhost:8080/api";
+    const response = await axios.post<ServerResponse<{ tokenInfo: TokenInfo }>>(
+      `${baseURL}/auth/refresh`,
+      { refreshToken },
+      { headers: { "Content-Type": "application/json" } }
     );
     const { accessToken, refreshToken: newRefreshToken } =
       response.data.data.tokenInfo;

@@ -4,6 +4,7 @@ import {
   deleteQrCodeByShortId,
   getQrCodeResultData,
   terminateQrCode,
+  updateQrCodeMeta,
 } from "../../api/qrcodeResult";
 import { formatToKoreanDateTime } from "../../utils/dateUtils";
 import "./MyQrcodeResult.css";
@@ -54,6 +55,13 @@ const MyQrcodeResult: React.FC = () => {
     "terminate" | "delete" | null
   >(null);
 
+  // 인라인 편집 상태
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [titleTouched, setTitleTouched] = useState(false);
+
   const fetchGuestbooks = async (page: number) => {
     if (!shortId) return;
 
@@ -98,9 +106,61 @@ const MyQrcodeResult: React.FC = () => {
     return formatToKoreanDateTime(dateString);
   };
 
-  // QR 코드 수정 페이지로 이동
+  // 타임존 미표기(예: YYYY-MM-DDTHH:mm:ss)면 UTC로 간주해 파싱
+  const parseApiDate = (s: string | null | undefined): Date | null => {
+    if (!s) return null;
+    const hasZone = /[zZ]|[+-]\d{2}:\d{2}$/.test(s);
+    return hasZone ? new Date(s) : new Date(`${s}Z`);
+  };
+
+  // QR 코드 인라인 수정 시작
   const handleEditQrCode = () => {
-    navigate(`/generator/edit/${shortId}`);
+    if (!eventData) return;
+    setIsEditing(true);
+    setEditTitle(eventData.title);
+    setEditDescription(eventData.description || "");
+    setTitleTouched(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditTitle("");
+    setEditDescription("");
+    setError(null);
+    setTitleTouched(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!shortId) return;
+    if (!editTitle.trim()) {
+      setError("제목을 입력해주세요.");
+      setTitleTouched(true);
+      return;
+    }
+    try {
+      setSaving(true);
+      await updateQrCodeMeta(shortId, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+      });
+      // 로컬 상태 반영 및 재조회
+      setEventData((prev) =>
+        prev
+          ? {
+              ...prev,
+              title: editTitle.trim(),
+              description: editDescription.trim(),
+            }
+          : prev
+      );
+      await fetchGuestbooks(pagination.currentPage);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("QR 코드 메타 저장 실패:", err);
+      setError("저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // QR 코드 종료 확인 모달 표시
@@ -167,12 +227,12 @@ const MyQrcodeResult: React.FC = () => {
       return { status: "알 수 없음", className: "status-unknown" };
 
     const now = new Date();
-    const startAt = new Date(eventData.entryStartAt);
-    const endAt = new Date(eventData.entryEndAt);
+    const startAt = parseApiDate(eventData.entryStartAt);
+    const endAt = parseApiDate(eventData.entryEndAt);
 
-    if (now < startAt) {
+    if (startAt && now < startAt) {
       return { status: "예정됨", className: "status-pending" };
-    } else if (now > endAt) {
+    } else if (endAt && now > endAt) {
       return { status: "만료됨", className: "status-expired" };
     } else {
       return { status: "활성", className: "status-active" };
@@ -209,11 +269,96 @@ const MyQrcodeResult: React.FC = () => {
       {/* QR 코드 정보 헤더 */}
       <div className="qrcode-result-header">
         <div className="header-title-section">
-          <h1>{eventData?.title || "QR 코드 관리"}</h1>
-          <span className={`qrcode-status ${className}`}>{status}</span>
+          {isEditing ? (
+            <div style={{ width: "100%" }}>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => {
+                  setEditTitle(e.target.value);
+                  if (!titleTouched) setTitleTouched(true);
+                }}
+                onBlur={() => setTitleTouched(true)}
+                placeholder="제목을 입력하세요"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  fontSize: "1.25rem",
+                  fontWeight: 700,
+                  border:
+                    !editTitle.trim() && titleTouched
+                      ? "1px solid #ef4444"
+                      : "1px solid #ddd",
+                  borderRadius: 8,
+                  marginBottom: 8,
+                }}
+                disabled={saving}
+              />
+              {!editTitle.trim() && titleTouched && (
+                <div style={{ marginTop: 4 }}>
+                  <span
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "0.95rem",
+                      lineHeight: 1.3,
+                      fontWeight: 500,
+                    }}
+                  >
+                    제목은 비워둘 수 없습니다.
+                  </span>
+                </div>
+              )}
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="설명을 입력하세요"
+                rows={3}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  fontSize: "1rem",
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                }}
+                disabled={saving}
+              />
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <button
+                  className="action-button edit-button"
+                  onClick={handleSaveEdit}
+                  disabled={saving}
+                >
+                  {saving ? "저장 중..." : "저장"}
+                </button>
+                <button
+                  className="action-button delete-button"
+                  onClick={handleCancelEdit}
+                  disabled={saving}
+                >
+                  취소
+                </button>
+                <span
+                  className={`qrcode-status ${className}`}
+                  style={{ marginLeft: "auto" }}
+                >
+                  {status}
+                </span>
+              </div>
+              {error && (
+                <div className="error-message" style={{ marginTop: 10 }}>
+                  <p>{error}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <h1>{eventData?.title || "QR 코드 관리"}</h1>
+              <span className={`qrcode-status ${className}`}>{status}</span>
+            </>
+          )}
         </div>
 
-        {eventData?.description && (
+        {!isEditing && eventData?.description && (
           <p className="qrcode-description">{eventData.description}</p>
         )}
 
@@ -245,18 +390,20 @@ const MyQrcodeResult: React.FC = () => {
 
       {/* QR 코드 관리 액션 버튼 */}
       <div className="qrcode-result-actions">
-        <button
-          className="action-button edit-button"
-          onClick={handleEditQrCode}
-        >
-          QR 코드 수정
-        </button>
+        {!isEditing ? (
+          <button
+            className="action-button edit-button"
+            onClick={handleEditQrCode}
+          >
+            QR 코드 수정
+          </button>
+        ) : null}
         <button
           className="action-button terminate-button"
           onClick={showTerminateConfirmation}
           disabled={status === "만료됨"}
         >
-          접근 종료
+          즉시 종료시키기
         </button>
         <button
           className="action-button delete-button"

@@ -148,6 +148,15 @@ const Guestbook: React.FC = () => {
       }
     }
 
+    // 전화번호 필수 및 형식 검증 (10~11자리 숫자)
+    if (!/^\d{10,11}$/.test(phoneNumber)) {
+      setStatusMessage({
+        type: "error",
+        message: "전화번호를 올바르게 입력해주세요.",
+      });
+      return;
+    }
+
     try {
       setSubmitting(true);
       setStatusMessage(null);
@@ -157,7 +166,7 @@ const Guestbook: React.FC = () => {
         shortId,
         deviceId,
         name: guestName,
-        phoneNumber: phoneNumber || undefined, // 입력하지 않았으면 undefined로 설정
+        phoneNumber: phoneNumber,
       });
 
       // 성공 처리
@@ -178,6 +187,23 @@ const Guestbook: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  // 전화번호 표시용 하이픈 포맷 (저장 값은 숫자만 유지)
+  const formatPhone = (raw: string): string => {
+    const digits = raw.replace(/\D/g, "");
+    const a = digits.slice(0, 3);
+    if (digits.length <= 3) return a;
+    if (digits.length <= 7) return `${a}-${digits.slice(3)}`;
+    return `${a}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").substring(0, 11);
+    setPhoneNumber(digits);
+  };
+
+  // 전화번호 유효성 (10~11자리 숫자)
+  const isPhoneValid = /^\d{10,11}$/.test(phoneNumber);
 
   if (loading) {
     return (
@@ -273,14 +299,14 @@ const Guestbook: React.FC = () => {
           <div className="form-group">
             <label htmlFor="phoneNumber">전화번호</label>
             <div className="description-text">
-              이벤트 상품 전달을 위해서만 사용됩니다. ex.01012345678
+              이벤트 상품 전달을 위해서만 사용됩니다.
             </div>
             <input
               type="tel"
               id="phoneNumber"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="(선택) 01012345678 형식으로 입력해주세요"
+              value={formatPhone(phoneNumber)}
+              onChange={handlePhoneChange}
+              placeholder="숫자를 입력해주세요"
               disabled={submitting}
             />
           </div>
@@ -299,7 +325,11 @@ const Guestbook: React.FC = () => {
             </div>
           )}
 
-          <button type="submit" className="submit-button" disabled={submitting}>
+          <button
+            type="submit"
+            className="submit-button"
+            disabled={submitting || !isPhoneValid}
+          >
             {submitting ? "등록 중..." : "방명록 남기기"}
           </button>
         </form>

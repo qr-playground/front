@@ -49,7 +49,7 @@ export const getGuestbooksPaginated = async (
     // 실제 API 호출
     const response = await api.get(`/qrcode/${shortId}/guestbook/`, {
       params: {
-        page: page - 1, // 서버는 0부터 페이지 시작할 수 있음
+        page: Math.max(0, page - 1), // 최소 0 보장
         size,
       },
     });
